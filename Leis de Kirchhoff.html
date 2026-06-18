@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Leis de Kirchhoff</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #3b82f6; /* Azul Brilhante */
+            --secondary: #f43f5e; /* Rosa Choque */
+            --accent: #10b981; /* Verde Neon */
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 1000px;
+        }
+
+        /* Área do Circuito */
+        #circuit-canvas {
+            background: #000;
+            border: 3px solid var(--primary);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Painel de Controle */
+        .controls {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .control-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--accent); }
+        
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .stats {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-left: 4px solid var(--secondary);
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .explanation {
+            margin-top: 20px;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        b { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <h1>Simulador Kirchhoff Pro</h1>
+
+    <div class="container">
+        <canvas id="circuit-canvas" width="500" height="400"></canvas>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Voltagem (V): <span id="v-val">12</span>V</label>
+                <input type="range" id="voltage" min="1" max="50" value="12">
+            </div>
+            <div class="control-group">
+                <label>Resistor 1 (R1): <span id="r1-val">10</span>Ω</label>
+                <input type="range" id="res1" min="1" max="100" value="10">
+            </div>
+            <div class="control-group">
+                <label>Resistor 2 (R2): <span id="r2-val">20</span>Ω</label>
+                <input type="range" id="res2" min="1" max="100" value="20">
+            </div>
+
+            <div class="stats" id="data-panel">
+                </div>
+        </div>
+    </div>
+
+    <div class="explanation">
+        <h3>Entenda as Leis:</h3>
+        <p>1. <b>Lei dos Nós:</b> Observe o ponto onde o fio se divide. A corrente total $I_{total}$ se separa em $I_1$ e $I_2$. A soma delas sempre será igual à entrada.</p>
+        <p>2. <b>Lei das Malhas:</b> A energia fornecida pela bateria é "consumida" pelos resistores. Em qualquer caminho fechado, a subida de tensão (bateria) é igual à queda (resistores).</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('circuit-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Inputs
+        const vInput = document.getElementById('voltage');
+        const r1Input = document.getElementById('res1');
+        const r2Input = document.getElementById('res2');
+
+        let offset = 0; // Para animação da corrente
+
+        function draw() {
+            const V = parseFloat(vInput.value);
+            const R1 = parseFloat(r1Input.value);
+            const R2 = parseFloat(r2Input.value);
+
+            // Cálculos
+            const Req_paralelo = (R1 * R2) / (R1 + R2);
+            const Itotal = V / Req_paralelo;
+            const I1 = V / R1;
+            const I2 = V / R2;
+
+            // Atualizar texto
+            document.getElementById('v-val').innerText = V;
+            document.getElementById('r1-val').innerText = R1;
+            document.getElementById('r2-val').innerText = R2;
+            document.getElementById('data-panel').innerHTML = `
+                <b>I Total:</b> ${Itotal.toFixed(2)}A<br>
+                <b>I no R1:</b> ${I1.toFixed(2)}A<br>
+                <b>I no R2:</b> ${I2.toFixed(2)}A<br>
+                <hr>
+                <b>V no R1:</b> ${V}V<br>
+                <b>V no R2:</b> ${V}V
+            `;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenhar Fios Principais
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            // Retângulo principal
+            ctx.rect(50, 50, 400, 300);
+            // Divisão central (paralelo)
+            ctx.moveTo(250, 50);
+            ctx.lineTo(250, 350);
+            ctx.stroke();
+
+            // Desenhar Bateria (Esquerda)
+            drawComponent(50, 200, 'BAT', V + 'V', '#3b82f6');
+
+            // Desenhar Resistores
+            drawComponent(250, 200, 'R1', R1 + 'Ω', '#f43f5e');
+            drawComponent(450, 200, 'R2', R2 + 'Ω', '#f43f5e');
+
+            // Animar Elétrons (Pontos amarelos)
+            animateCurrent(Itotal, I1, I2);
+
+            offset -= 0.5;
+            requestAnimationFrame(draw);
+        }
+
+        function drawComponent(x, y, label, val, color) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x-25, y-35, 50, 70);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x-20, y-30, 40, 60);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, y - 5);
+            ctx.fillStyle = color;
+            ctx.fillText(val, x, y + 15);
+        }
+
+        function animateCurrent(it, i1, i2) {
+            ctx.fillStyle = '#fbbf24'; // Cor da corrente (amarelo)
+            
+            // Corrente Total (Trecho da esquerda)
+            drawDots(50, 350, 50, 50, it * 2, true);  // Sobe na bateria
+            drawDots(50, 50, 250, 50, it * 2, false); // Vai até o nó
+
+            // Corrente Malha 1 (R1)
+            drawDots(250, 50, 250, 350, i1 * 2, false); 
+            
+            // Corrente Malha 2 (R2)
+            drawDots(250, 50, 450, 50, i2 * 2, false);
+            drawDots(450, 50, 450, 350, i2 * 2, false);
+            drawDots(450, 350, 250, 350, i2 * 2, false);
+
+            // Retorno Total
+            drawDots(250, 350, 50, 350, it * 2, false);
+        }
+
+        function drawDots(x1, y1, x2, y2, speed, reverse) {
+            const distance = Math.hypot(x2-x1, y2-y1);
+            const dots = 5;
+            for(let i=0; i<dots; i++) {
+                let p = ((i / dots) + (offset * speed / 100)) % 1;
+                if (p < 0) p += 1;
+                const dx = x1 + (x2 - x1) * p;
+                const dy = y1 + (y2 - y1) * p;
+                ctx.beginPath();
+                ctx.arc(dx, dy, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        draw();
+    </script>
+</body>
+</html>
