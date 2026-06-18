@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central de Simuladores Elétricos</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(0, 255, 255, 0.18), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(0, 140, 255, 0.18), transparent 35%),
+        #050b14;
+      color: #ffffff;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 28px 16px;
+      border: 1px solid rgba(0, 255, 255, 0.25);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.08);
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: #00eaff;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      color: #b9d8e8;
+      font-size: 1.05rem;
+    }
+
+    .search-box {
+      margin: 24px auto 32px;
+      max-width: 600px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 255, 255, 0.35);
+      outline: none;
+      background: rgba(255, 255, 255, 0.07);
+      color: white;
+      font-size: 1rem;
+    }
+
+    .search-box input::placeholder {
+      color: #91a8b7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      min-height: 180px;
+      padding: 22px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.06);
+      transition: 0.25s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: #00eaff;
+      box-shadow: 0 0 28px rgba(0, 234, 255, 0.25);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: #a9c0cf;
+      font-size: 0.92rem;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    .card a {
+      display: inline-block;
+      text-decoration: none;
+      text-align: center;
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: #001018;
+      background: linear-gradient(90deg, #00eaff, #00ff9d);
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .card a:hover {
+      filter: brightness(1.15);
+      transform: scale(1.03);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 36px;
+      color: #7894a4;
+      font-size: 0.9rem;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(0, 234, 255, 0.12);
+      color: #00eaff;
+      font-size: 0.78rem;
+      border: 1px solid rgba(0, 234, 255, 0.25);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Central de Simuladores Elétricos</h1>
+      <p>Acesse os simuladores didáticos de eletricidade, IoT, fotovoltaica, potência, SPDA e automação.</p>
+    </header>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Pesquisar simulador..." onkeyup="filtrarSimuladores()">
+    </div>
+
+    <main class="grid" id="simuladoresGrid"></main>
+
+    <footer>
+      Desenvolvido para acesso rápido aos simuladores didáticos.
+    </footer>
+  </div>
+
+  <script>
+    const simuladores = [
+      {
+        titulo: "Dashboard de Monitoramento IoT",
+        descricao: "Painel didático para monitoramento simulado de variáveis IoT.",
+        arquivo: "Dashboards de Monitoramento IoT Simulado.HTML",
+        categoria: "IoT"
+      },
+      {
+        titulo: "Demonstrador CA-CC",
+        descricao: "Simulador para estudo de corrente alternada e corrente contínua.",
+        arquivo: "Demonstrador_CA-CC.HTML",
+        categoria: "Eletricidade"
+      },
+      {
+        titulo: "Dimensionamento Fotovoltaico",
+        descricao: "Ferramenta didática para apoio ao dimensionamento de sistemas fotovoltaicos.",
+        arquivo: "Dimensionamento Fotovoltaico.HTML",
+        categoria: "Fotovoltaico"
+      },
+      {
+        titulo: "Duoeletro Innovation",
+        descricao: "Ambiente interativo para estudos de eletricidade e inovação tecnológica.",
+        arquivo: "Duoeletro Innovation.html",
+        categoria: "Geral"
+      },
+      {
+        titulo: "Lei de Ohm",
+        descricao: "Simulador do ecossistema elétrico com tensão, corrente e resistência.",
+        arquivo: "Ecossistema Elétrico - Lei de Ohm.HTML",
+        categoria: "Grandezas"
+      },
+      {
+        titulo: "Coordenograma e Seletividade",
+        descricao: "Estudo didático de proteção elétrica, seletividade e coordenação.",
+        arquivo: "Estudo de Coordenograma e Seletividade.html",
+        categoria: "Proteção"
+      },
+      {
+        titulo: "Fator de Potência",
+        descricao: "Simulador para análise de fator de potência e correção.",
+        arquivo: "Fator de Potência.html",
+        categoria: "Potência"
+      },
+      {
+        titulo: "Gerador de Código ESP32",
+        descricao: "Ferramenta para gerar códigos didáticos para ESP32.",
+        arquivo: "Gerador de Código para ESP32.HTML",
+        categoria: "IoT"
+      },
+      {
+        titulo: "Guia de Dimensionamento de Condutores",
+        descricao: "Guia interativo para estudo e dimensionamento de condutores elétricos.",
+        arquivo: "Guia Interativo de Dimensionamento de condutores.HTML",
+        categoria: "Instalações"
+      },
+      {
+        titulo: "IoT Edu - Gerador ESP32",
+        descricao: "Gerador educacional de código para aplicações IoT com ESP32.",
+        arquivo: "IoT Edu – Gerador de Código para ESP32.HTML",
+        categoria: "IoT"
+      },
+      {
+        titulo: "Modelos Atômicos Tridimensionais",
+        descricao: "Simulador visual para estudo de modelos atômicos.",
+        arquivo: "Modelos atômicos tridimensionais.html",
+        categoria: "Ciências"
+      },
+      {
+        titulo: "Triângulo de Potência",
+        descricao: "Simulador de potência ativa, reativa e aparente.",
+        arquivo: "Potências Elétricas - Triângulo de Potência.HTML",
+        categoria: "Potência"
+      },
+      {
+        titulo: "Aterramento e SPDA",
+        descricao: "Simulador didático sobre aterramento elétrico e proteção contra descargas atmosféricas.",
+        arquivo: "Simulador Didático -Aterramento e SPDA.HTML",
+        categoria: "SPDA"
+      },
+      {
+        titulo: "Simulador de Pilhas",
+        descricao: "Estudo interativo sobre pilhas, tensão e associação.",
+        arquivo: "Simulador de Pilhas.html",
+        categoria: "Eletroquímica"
+      },
+      {
+        titulo: "SmartBot",
+        descricao: "Assistente ou simulador inteligente para apoio didático.",
+        arquivo: "SmartBot.HTML",
+        categoria: "IA"
+      },
+      {
+        titulo: "Corrente Elétrica",
+        descricao: "Simulador para estudo da corrente elétrica.",
+        arquivo: "corrente elétrica.html",
+        categoria: "Grandezas"
+      },
+      {
+        titulo: "Eletricidade",
+        descricao: "Ambiente didático sobre fundamentos da eletricidade.",
+        arquivo: "eletricidade.html",
+        categoria: "Eletricidade"
+      },
+      {
+        titulo: "Simuladores de Grandezas",
+        descricao: "Central de estudos sobre tensão, corrente, resistência e potência.",
+        arquivo: "simuladores de grandezas.html",
+        categoria: "Grandezas"
+      }
+    ];
+
+    const grid = document.getElementById("simuladoresGrid");
+
+    function carregarSimuladores(lista) {
+      grid.innerHTML = "";
+
+      lista.forEach(simulador => {
+        const card = document.createElement("section");
+        card.className = "card";
+
+        const linkSeguro = encodeURI(simulador.arquivo);
+
+        card.innerHTML = `
+          <div>
+            <span class="tag">${simulador.categoria}</span>
+            <h2>${simulador.titulo}</h2>
+            <p>${simulador.descricao}</p>
+          </div>
+          <a href="${linkSeguro}" target="_blank">Acessar simulador</a>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function filtrarSimuladores() {
+      const termo = document.getElementById("searchInput").value.toLowerCase();
+
+      const filtrados = simuladores.filter(simulador =>
+        simulador.titulo.toLowerCase().includes(termo) ||
+        simulador.descricao.toLowerCase().includes(termo) ||
+        simulador.categoria.toLowerCase().includes(termo)
+      );
+
+      carregarSimuladores(filtrados);
+    }
+
+    carregarSimuladores(simuladores);
+  </script>
+</body>
+</html>
