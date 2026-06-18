@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Central de Simuladores Elétricos</title>
 
   <style>
@@ -16,52 +17,82 @@
     body {
       min-height: 100vh;
       background:
-        radial-gradient(circle at top left, rgba(0, 255, 255, 0.18), transparent 35%),
-        radial-gradient(circle at bottom right, rgba(0, 140, 255, 0.18), transparent 35%),
-        #050b14;
+        radial-gradient(circle at top left, rgba(0, 255, 255, 0.20), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(0, 120, 255, 0.22), transparent 35%),
+        linear-gradient(135deg, #020617, #07111f, #020617);
       color: #ffffff;
       padding: 24px;
     }
 
     .container {
-      max-width: 1200px;
-      margin: auto;
+      width: 100%;
+      max-width: 1250px;
+      margin: 0 auto;
     }
 
     header {
       text-align: center;
-      margin-bottom: 32px;
-      padding: 28px 16px;
-      border: 1px solid rgba(0, 255, 255, 0.25);
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.04);
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.08);
+      margin-bottom: 28px;
+      padding: 34px 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(0, 238, 255, 0.28);
+      background: rgba(255, 255, 255, 0.045);
+      box-shadow: 0 0 35px rgba(0, 238, 255, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    header .logo {
+      width: 82px;
+      height: 82px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #00eaff, #00ff9d);
+      color: #001018;
+      font-size: 2.1rem;
+      font-weight: bold;
+      box-shadow: 0 0 28px rgba(0, 234, 255, 0.45);
     }
 
     header h1 {
-      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-size: clamp(2rem, 5vw, 3.7rem);
       color: #00eaff;
       margin-bottom: 12px;
+      letter-spacing: 0.5px;
     }
 
     header p {
-      color: #b9d8e8;
-      font-size: 1.05rem;
+      color: #b7d7e8;
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      line-height: 1.5;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
     }
 
     .search-box {
-      margin: 24px auto 32px;
-      max-width: 600px;
+      flex: 1;
+      min-width: 260px;
     }
 
     .search-box input {
       width: 100%;
-      padding: 16px 18px;
+      padding: 15px 18px;
       border-radius: 14px;
-      border: 1px solid rgba(0, 255, 255, 0.35);
+      border: 1px solid rgba(0, 255, 255, 0.32);
       outline: none;
       background: rgba(255, 255, 255, 0.07);
-      color: white;
+      color: #ffffff;
       font-size: 1rem;
     }
 
@@ -69,59 +100,139 @@
       color: #91a8b7;
     }
 
+    .contador {
+      padding: 15px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 255, 157, 0.26);
+      background: rgba(0, 255, 157, 0.08);
+      color: #00ff9d;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .categorias {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 26px;
+      justify-content: center;
+    }
+
+    .categoria-btn {
+      border: 1px solid rgba(0, 234, 255, 0.28);
+      background: rgba(255, 255, 255, 0.06);
+      color: #c9e8f5;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: bold;
+      font-size: 0.88rem;
+    }
+
+    .categoria-btn:hover,
+    .categoria-btn.ativo {
+      background: linear-gradient(90deg, #00eaff, #00ff9d);
+      color: #001018;
+      border-color: transparent;
+      box-shadow: 0 0 18px rgba(0, 234, 255, 0.26);
+    }
+
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
       gap: 18px;
     }
 
     .card {
-      min-height: 180px;
+      min-height: 210px;
       padding: 22px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-      border: 1px solid rgba(0, 255, 255, 0.2);
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.06);
-      transition: 0.25s;
+      border-radius: 22px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.085), rgba(255,255,255,0.028));
+      border: 1px solid rgba(0, 255, 255, 0.18);
+      box-shadow: 0 0 24px rgba(0, 255, 255, 0.06);
+      transition: 0.25s ease;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(0, 234, 255, 0.08);
+      top: -45px;
+      right: -45px;
     }
 
     .card:hover {
       transform: translateY(-6px);
       border-color: #00eaff;
-      box-shadow: 0 0 28px rgba(0, 234, 255, 0.25);
+      box-shadow: 0 0 30px rgba(0, 234, 255, 0.24);
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: rgba(0, 234, 255, 0.12);
+      color: #00eaff;
+      font-size: 0.78rem;
+      border: 1px solid rgba(0, 234, 255, 0.25);
+      font-weight: bold;
     }
 
     .card h2 {
       font-size: 1.15rem;
       color: #ffffff;
       margin-bottom: 10px;
+      line-height: 1.25;
+      position: relative;
+      z-index: 1;
     }
 
     .card p {
       color: #a9c0cf;
-      font-size: 0.92rem;
-      line-height: 1.4;
+      font-size: 0.93rem;
+      line-height: 1.45;
       margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
     }
 
     .card a {
       display: inline-block;
       text-decoration: none;
       text-align: center;
-      padding: 12px 16px;
-      border-radius: 12px;
+      padding: 13px 16px;
+      border-radius: 13px;
       color: #001018;
       background: linear-gradient(90deg, #00eaff, #00ff9d);
       font-weight: bold;
       transition: 0.2s;
+      position: relative;
+      z-index: 1;
     }
 
     .card a:hover {
-      filter: brightness(1.15);
-      transform: scale(1.03);
+      filter: brightness(1.12);
+      transform: scale(1.025);
+    }
+
+    .vazio {
+      text-align: center;
+      padding: 40px 20px;
+      border-radius: 18px;
+      border: 1px dashed rgba(0, 234, 255, 0.25);
+      color: #aac9d8;
+      grid-column: 1 / -1;
     }
 
     footer {
@@ -129,37 +240,66 @@
       margin-top: 36px;
       color: #7894a4;
       font-size: 0.9rem;
+      padding-bottom: 20px;
     }
 
-    .tag {
-      display: inline-block;
-      margin-bottom: 12px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(0, 234, 255, 0.12);
-      color: #00eaff;
-      font-size: 0.78rem;
-      border: 1px solid rgba(0, 234, 255, 0.25);
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
+      }
+
+      header {
+        padding: 26px 14px;
+      }
+
+      .contador {
+        width: 100%;
+        text-align: center;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
+
     <header>
+      <div class="logo">⚡</div>
       <h1>Central de Simuladores Elétricos</h1>
-      <p>Acesse os simuladores didáticos de eletricidade, IoT, fotovoltaica, potência, SPDA e automação.</p>
+      <p>
+        Plataforma didática para acesso rápido aos simuladores de eletricidade,
+        grandezas elétricas, potência, fotovoltaica, IoT, proteção, SPDA,
+        instrumentação e automação.
+      </p>
     </header>
 
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Pesquisar simulador..." onkeyup="filtrarSimuladores()">
-    </div>
+    <section class="top-bar">
+      <div class="search-box">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Pesquisar simulador por nome, categoria ou descrição..."
+          onkeyup="filtrarSimuladores()"
+        />
+      </div>
+
+      <div class="contador" id="contadorSimuladores">
+        0 simuladores
+      </div>
+    </section>
+
+    <section class="categorias" id="categorias"></section>
 
     <main class="grid" id="simuladoresGrid"></main>
 
     <footer>
       Desenvolvido para acesso rápido aos simuladores didáticos.
     </footer>
+
   </div>
 
   <script>
@@ -186,7 +326,7 @@
         titulo: "Duoeletro Innovation",
         descricao: "Ambiente interativo para estudos de eletricidade e inovação tecnológica.",
         arquivo: "Duoeletro Innovation.html",
-        categoria: "Geral"
+        categoria: "Inovação"
       },
       {
         titulo: "Lei de Ohm",
@@ -207,7 +347,13 @@
         categoria: "Potência"
       },
       {
-        titulo: "Gerador de Código ESP32",
+        titulo: "Fator de Potência - Banco Didático",
+        descricao: "Simulador complementar para estudo de fator de potência.",
+        arquivo: "fator_potencia.html",
+        categoria: "Potência"
+      },
+      {
+        titulo: "Gerador de Código para ESP32",
         descricao: "Ferramenta para gerar códigos didáticos para ESP32.",
         arquivo: "Gerador de Código para ESP32.HTML",
         categoria: "IoT"
@@ -219,10 +365,16 @@
         categoria: "Instalações"
       },
       {
-        titulo: "IoT Edu - Gerador ESP32",
+        titulo: "IoT Edu - Gerador de Código para ESP32",
         descricao: "Gerador educacional de código para aplicações IoT com ESP32.",
         arquivo: "IoT Edu – Gerador de Código para ESP32.HTML",
         categoria: "IoT"
+      },
+      {
+        titulo: "Leis de Kirchhoff",
+        descricao: "Simulador didático para estudo da Lei dos Nós e da Lei das Malhas.",
+        arquivo: "Leis de Kirchhoff.html",
+        categoria: "Circuitos"
       },
       {
         titulo: "Modelos Atômicos Tridimensionais",
@@ -249,10 +401,16 @@
         categoria: "Eletroquímica"
       },
       {
-        titulo: "SmartBot",
-        descricao: "Assistente ou simulador inteligente para apoio didático.",
-        arquivo: "SmartBot.HTML",
-        categoria: "IA"
+        titulo: "Analisador Elétrico",
+        descricao: "Ferramenta didática para análise de grandezas elétricas.",
+        arquivo: "analisador.html",
+        categoria: "Medições"
+      },
+      {
+        titulo: "Banco de Capacitores",
+        descricao: "Simulador para estudo de banco de capacitores e correção de fator de potência.",
+        arquivo: "banco_capacitores.html",
+        categoria: "Potência"
       },
       {
         titulo: "Corrente Elétrica",
@@ -267,17 +425,65 @@
         categoria: "Eletricidade"
       },
       {
+        titulo: "Osciloscópio",
+        descricao: "Simulador didático para visualização de sinais elétricos.",
+        arquivo: "osciloscopio.html",
+        categoria: "Instrumentação"
+      },
+      {
         titulo: "Simuladores de Grandezas",
-        descricao: "Central de estudos sobre tensão, corrente, resistência e potência.",
+        descricao: "Central de estudos sobre tensão, corrente, resistência, potência ativa, reativa e aparente.",
         arquivo: "simuladores de grandezas.html",
         categoria: "Grandezas"
       }
     ];
 
     const grid = document.getElementById("simuladoresGrid");
+    const contador = document.getElementById("contadorSimuladores");
+    const categoriasContainer = document.getElementById("categorias");
+    const searchInput = document.getElementById("searchInput");
+
+    let categoriaAtual = "Todos";
+
+    function criarCategorias() {
+      const categorias = ["Todos", ...new Set(simuladores.map(item => item.categoria))];
+
+      categoriasContainer.innerHTML = "";
+
+      categorias.forEach(categoria => {
+        const botao = document.createElement("button");
+        botao.className = "categoria-btn";
+        botao.textContent = categoria;
+
+        if (categoria === categoriaAtual) {
+          botao.classList.add("ativo");
+        }
+
+        botao.onclick = () => {
+          categoriaAtual = categoria;
+          criarCategorias();
+          filtrarSimuladores();
+        };
+
+        categoriasContainer.appendChild(botao);
+      });
+    }
 
     function carregarSimuladores(lista) {
       grid.innerHTML = "";
+
+      contador.textContent = lista.length === 1
+        ? "1 simulador"
+        : lista.length + " simuladores";
+
+      if (lista.length === 0) {
+        grid.innerHTML = `
+          <div class="vazio">
+            Nenhum simulador encontrado. Tente pesquisar por outro nome ou categoria.
+          </div>
+        `;
+        return;
+      }
 
       lista.forEach(simulador => {
         const card = document.createElement("section");
@@ -291,7 +497,10 @@
             <h2>${simulador.titulo}</h2>
             <p>${simulador.descricao}</p>
           </div>
-          <a href="${linkSeguro}" target="_blank">Acessar simulador</a>
+
+          <a href="${linkSeguro}" target="_blank" rel="noopener noreferrer">
+            Acessar simulador
+          </a>
         `;
 
         grid.appendChild(card);
@@ -299,17 +508,24 @@
     }
 
     function filtrarSimuladores() {
-      const termo = document.getElementById("searchInput").value.toLowerCase();
+      const termo = searchInput.value.toLowerCase().trim();
 
-      const filtrados = simuladores.filter(simulador =>
-        simulador.titulo.toLowerCase().includes(termo) ||
-        simulador.descricao.toLowerCase().includes(termo) ||
-        simulador.categoria.toLowerCase().includes(termo)
-      );
+      const filtrados = simuladores.filter(simulador => {
+        const correspondeTexto =
+          simulador.titulo.toLowerCase().includes(termo) ||
+          simulador.descricao.toLowerCase().includes(termo) ||
+          simulador.categoria.toLowerCase().includes(termo);
+
+        const correspondeCategoria =
+          categoriaAtual === "Todos" || simulador.categoria === categoriaAtual;
+
+        return correspondeTexto && correspondeCategoria;
+      });
 
       carregarSimuladores(filtrados);
     }
 
+    criarCategorias();
     carregarSimuladores(simuladores);
   </script>
 </body>
