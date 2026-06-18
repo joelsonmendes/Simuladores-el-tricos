@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Grandezas Elétricas - Lei de Ohm e Joule</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      color: #333;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0d47a1;
+      margin-bottom: 10px;
+      font-size: 2.2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #546e7a;
+      margin-bottom: 30px;
+      font-size: 1.2em;
+      line-height: 1.5;
+    }
+
+    .simulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .simulator-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: #f8fbff;
+      padding: 25px;
+      border-radius: 16px;
+      border-left: 5px solid #1e88e5;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .panel h2 {
+      color: #0d47a1;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5em;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e3f2fd;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #0d47a1;
+      font-size: 1.05em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+      background: #e0e0e0;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1e88e5;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    #voltage {
+      background: linear-gradient(to right, #ff7043, #1e88e5);
+      height: 12px;
+    }
+
+    #resistance {
+      background: linear-gradient(to right, #43a047, #8e24aa);
+      height: 12px;
+    }
+
+    .value-display {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      color: #0d47a1;
+      font-size: 1.1em;
+      margin-top: 5px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .result-card {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: 2px solid #90caf9;
+      transition: transform 0.3s ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .result-card h3 {
+      color: #01579b;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .result-value {
+      font-size: 2.2em;
+      font-weight: bold;
+      color: #0d47a1;
+      margin: 8px 0;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .formula {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 500;
+      color: #1565c0;
+      font-family: 'Courier New', monospace;
+      margin-top: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .visualization {
+      background: linear-gradient(to bottom, #f5f9ff, #e8f4ff);
+      border-radius: 16px;
+      padding: 25px;
+      margin: 25px 0;
+      text-align: center;
+      border: 2px solid #bbdefb;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .visualization::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(to right, #ff7043, #1e88e5, #43a047, #8e24aa);
+      z-index: 10;
+    }
+
+    .circuit-diagram {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .component {
+      position: relative;
+      z-index: 2;
+      font-size: 2.8em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .component-label {
+      font-size: 0.85em;
+      margin-top: 8px;
+      color: #0d47a1;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .wire {
+      position: absolute;
+      background: #b0bec5;
+      height: 4px;
+      border-radius: 2px;
+      z-index: 1;
+    }
+
+    .wire.top {
+      width: 75%;
+      top: 30%;
+      left: 12.5%;
+    }
+
+    .wire.bottom {
+      width: 75%;
+      bottom: 30%;
+      left: 12.5%;
+    }
+
+    .electron {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ff5722;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ff9800;
+      z-index: 3;
+    }
+
+    .info-panel {
+      background: linear-gradient(135deg, #fffde7, #fff9c4);
+      padding: 20px;
+      border-radius: 16px;
+      margin-top: 25px;
+      border-left: 5px solid #ffa000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-panel h3 {
+      color: #5d4037;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.4em;
+    }
+
+    .info-panel p {
+      line-height: 1.6;
+      margin-bottom: 10px;
+      color: #3e2723;
+    }
+
+    .formula-highlight {
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      padding: 15px;
+      border-radius: 12px;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 1.15em;
+      text-align: center;
+      border: 2px solid #81c784;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .warning {
+      background: linear-gradient(135deg, #ffebee, #ffcdd2);
+      color: #c62828;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 15px 0;
+      font-weight: 600;
+      display: none;
+      border-left: 5px solid #f44336;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .warning::before {
+      content: "⚠️";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.3em;
+    }
+
+    .bulb-container {
+      position: relative;
+      display: inline-block;
+      margin: 15px 0;
+    }
+
+    .bulb {
+      font-size: 3.5em;
+      transition: all 0.5s ease;
+      filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.7));
+    }
+
+    .bulb.bright {
+      text-shadow: 0 0 15px #ffeb3b, 0 0 25px #ff9800;
+      transform: scale(1.05);
+    }
+
+    .bulb.dim {
+      opacity: 0.6;
+      filter: none;
+    }
+
+    .norm-reference {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 0.95em;
+      color: #01579b;
+      border-left: 4px solid #0288d1;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .reset-btn {
+      background: linear-gradient(135deg, #4527a0, #673ab7);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 20px auto 0;
+      display: block;
+      transition: all 0.3s;
+      font-size: 1.1em;
+      box-shadow: 0 4px 10px rgba(69, 39, 160, 0.4);
+    }
+
+    .reset-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(69, 39, 160, 0.6);
+      background: linear-gradient(135deg, #311b92, #5e35b1);
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 25px;
+      padding-top: 15px;
+      border-top: 1px solid #e0e0e0;
+      color: #546e7a;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+
+    @keyframes electronFlow {
+      0% {
+        left: 15%;
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        left: 85%;
+        opacity: 0.3;
+      }
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.9); }
+      100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    }
+
+    .glow {
+      animation: glow 1.5s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Simulador de Grandezas Elétricas</h1>
+    <p class="subtitle">Explore interativamente a Lei de Ohm e a Lei de Joule com visualização em tempo real do circuito elétrico</p>
+
+    <div class="simulator-grid">
+      <div class="panel">
+        <h2>🎛️ Parâmetros do Circuito</h2>
+        
+        <div class="input-group">
+          <label for="voltage">
+            <span>🔋 Tensão (V)</span>
+            <span id="voltage-value">127 V</span>
+          </label>
+          <div class="slider-container">
+            <input type="range" id="voltage" min="0" max="240" value="127" step="1" />
+            <div class="value-display">
+              <span>0 V</span>
+              <span>240 V</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="resistance">
+            <span>⚙️ Resistência (Ω)</span>
+            <span id="resistance-value">100 Ω</span>
+          </label>
+          <div class="slider-container">
+            <input type="range" id="resistance" min="1" max="2000" value="100" step="1" />
+            <div class="value-display">
+              <span>1 Ω</span>
+              <span>2000 Ω</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-panel">
+          <h3>💡 Conceitos Fundamentais</h3>
+          <p><strong>Lei de Ohm:</strong> A corrente elétrica (I) é diretamente proporcional à tensão (V) e inversamente proporcional à resistência (R).</p>
+          <div class="formula-highlight">I = V / R</div>
+          <p><strong>Lei de Joule:</strong> A potência elétrica (P) dissipada é o produto da tensão (V) pela corrente (I).</p>
+          <div class="formula-highlight">P = V × I = V² / R = I² × R</div>
+          <p><strong>Didática:</strong> Ao aumentar a tensão ou diminuir a resistência, a corrente e a potência aumentam proporcionalmente.</p>
+        </div>
+
+        <div class="norm-reference">
+          Alinhado à NBR 5410 e ao currículo do SENAI para cursos técnicos em eletrotécnica
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>📊 Resultados e Visualização</h2>
+        
+        <div class="results-grid">
+          <div class="result-card">
+            <h3>⚡ Corrente</h3>
+            <div class="result-value" id="current-result">1.27 A</div>
+            <div class="formula">I = V / R</div>
+          </div>
+          <div class="result-card">
+            <h3>💡 Potência</h3>
+            <div class="result-value" id="power-result">161.29 W</div>
+            <div class="formula">P = V × I</div>
+          </div>
+        </div>
+
+        <div class="warning" id="power-warning">
+          Atenção: Potência acima de 100W! Risco de superaquecimento em componentes comuns.
+        </div>
+        
+        <div class="warning" id="current-warning">
+          Atenção: Corrente acima de 10A! Requer condutores e proteção adequados.
+        </div>
+
+        <div class="visualization">
+          <h3 style="margin-bottom: 15px; color: #0d47a1;">Diagrama do Circuito</h3>
+          <div class="circuit-diagram">
+            <div class="wire top"></div>
+            <div class="component">
+              <div>🔋</div>
+              <div class="component-label">Fonte</div>
+            </div>
+            <div class="component">
+              <div class="bulb-container">
+                <div class="bulb" id="bulb">💡</div>
+              </div>
+              <div class="component-label">Carga</div>
+            </div>
+            <div class="wire bottom"></div>
+          </div>
+          
+          <div id="electron-container"></div>
+        </div>
+
+        <button class="reset-btn" onclick="resetValues()">
+          🔄 Restaurar Valores Padrão
+        </button>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <p>Simulador Didático de Grandezas Elétricas - Versão 2.0</p>
+      <p>Ferramenta educacional para fundamentos de eletricidade em cursos técnicos e ensino médio</p>
+      <p><strong>Nota:</strong> Os valores são para simulação didática. Em projetos reais, considere fatores como temperatura, tolerâncias e normas técnicas aplicáveis.</p>
+    </div>
+  </div>
+
+  <script>
+    // Elementos do DOM
+    const voltageSlider = document.getElementById('voltage');
+    const resistanceSlider = document.getElementById('resistance');
+    const voltageValue = document.getElementById('voltage-value');
+    const resistanceValue = document.getElementById('resistance-value');
+    const currentResult = document.getElementById('current-result');
+    const powerResult = document.getElementById('power-result');
+    const bulb = document.getElementById('bulb');
+    const electronContainer = document.getElementById('electron-container');
+    const powerWarning = document.getElementById('power-warning');
+    const currentWarning = document.getElementById('current-warning');
+
+    // Inicializa com valores padrão
+    let electronInterval;
+    createElectrons();
+
+    // Atualiza os valores exibidos e os cálculos
+    function updateCircuit() {
+      const V = parseFloat(voltageSlider.value);
+      const R = parseFloat(resistanceSlider.value);
+
+      const I = V / R; // Lei de Ohm
+      const P = V * I; // Lei de Joule
+
+      // Atualiza exibições
+      voltageValue.textContent = `${V} V`;
+      resistanceValue.textContent = `${R} Ω`;
+      currentResult.textContent = `${I.toFixed(2)} A`;
+      powerResult.textContent = `${P.toFixed(2)} W`;
+
+      // Atualiza aparência da lâmpada
+      updateBulb(P);
+      
+      // Atualiza avisos
+      updateWarnings(P, I);
+      
+      // Atualiza elétrons
+      updateElectrons(I);
+    }
+
+    // Atualiza aparência da lâmpada com base na potência
+    function updateBulb(power) {
+      bulb.classList.remove('bright', 'dim', 'glow');
+      
+      if (power > 50) {
+        bulb.classList.add('bright');
+        if (power > 150) bulb.classList.add('glow');
+      } else if (power < 5) {
+        bulb.classList.add('dim');
+      }
+      
+      // Escala o tamanho proporcional à potência (limitado)
+      const scale = Math.min(1.3, 0.8 + power / 300);
+      bulb.style.transform = `scale(${scale})`;
+    }
+
+    // Atualiza avisos de segurança
+    function updateWarnings(power, current) {
+      powerWarning.style.display = (power > 100) ? 'block' : 'none';
+      currentWarning.style.display = (current > 10) ? 'block' : 'none';
+    }
+
+    // Cria partículas de elétrons
+    function createElectrons() {
+      electronContainer.innerHTML = '';
+      for (let i = 0; i < 15; i++) {
+        const electron = document.createElement('div');
+        electron.className = 'electron';
+        electron.style.top = `${35 + Math.random() * 30}%`;
+        electron.style.left = `${10 + Math.random() * 80}%`;
+        electronContainer.appendChild(electron);
+      }
+    }
+
+    // Atualiza animação dos elétrons com base na corrente
+    function updateElectrons(current) {
+      const electrons = document.querySelectorAll('.electron');
+      
+      // Ajusta velocidade e visibilidade baseado na corrente
+      const speed = Math.max(0.5, 3 - current * 0.2); // Segundos para atravessar
+      const visible = current > 0.05;
+      
+      electrons.forEach((electron, index) => {
+        if (visible) {
+          electron.style.animation = `electronFlow ${speed}s linear infinite`;
+          electron.style.animationDelay = `${index * 0.1}s`;
+          electron.style.opacity = Math.min(1, current * 0.3);
+          electron.style.background = current > 2 ? '#ff1744' : '#ff5722';
+          electron.style.boxShadow = current > 2 ? 
+            '0 0 10px #ff5252' : '0 0 8px #ff9800';
+        } else {
+          electron.style.animation = 'none';
+          electron.style.opacity = '0';
+        }
+      });
+    }
+
+    // Restaura valores padrão
+    function resetValues() {
+      voltageSlider.value = 127;
+      resistanceSlider.value = 100;
+      updateCircuit();
+    }
+
+    // Event listeners
+    voltageSlider.addEventListener('input', updateCircuit);
+    resistanceSlider.addEventListener('input', updateCircuit);
+
+    // Inicializa
+    updateCircuit();
+    
+    // Melhoria na experiência: atualização contínua durante o arrasto
+    let isDragging = false;
+    [voltageSlider, resistanceSlider].forEach(slider => {
+      slider.addEventListener('mousedown', () => isDragging = true);
+      slider.addEventListener('mouseup', () => {
+        isDragging = false;
+        updateCircuit();
+      });
+      slider.addEventListener('mousemove', () => {
+        if (isDragging) updateCircuit();
+      });
+      slider.addEventListener('touchstart', () => isDragging = true);
+      slider.addEventListener('touchend', () => {
+        isDragging = false;
+        updateCircuit();
+      });
+      slider.addEventListener('touchmove', () => {
+        if (isDragging) updateCircuit();
+      });
+    });
+  </script>
+</body>
+</html>
+

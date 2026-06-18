@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulador Didático: Aterramento e SPDA - Normas NBR</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f0f7ff 0%, #e8f4ff 100%);
+      color: #222;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      text-align: center;
+      color: #311b92;
+      margin-bottom: 8px;
+      font-size: 2.4em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 30px;
+      font-size: 1.2em;
+      line-height: 1.5;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .simulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .simulator-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 2em;
+      }
+    }
+
+    .panel {
+      background: #f8f5ff;
+      padding: 25px;
+      border-radius: 15px;
+      border-left: 6px solid #4527a0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease;
+    }
+    
+    .panel:hover {
+      transform: translateY(-3px);
+    }
+
+    .panel h2 {
+      color: #311b92;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5em;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e1bee7;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #4527a0;
+      font-size: 0.95em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    label input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
+
+    .input-with-unit {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-with-unit input {
+      flex: 1;
+    }
+
+    .unit {
+      color: #666;
+      font-weight: 500;
+      min-width: 40px;
+      background: rgba(255,255,255,0.7);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+
+    select, input[type="number"], input[type="checkbox"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #d1c4e9;
+      border-radius: 8px;
+      font-size: 1em;
+      background: white;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    select:focus, input[type="number"]:focus, input[type="checkbox"]:focus {
+      outline: none;
+      border-color: #673ab7;
+      box-shadow: 0 0 0 3px rgba(103, 58, 183, 0.15);
+    }
+    
+    input[type="checkbox"] {
+      width: auto;
+      transform: scale(1.2);
+      margin-right: 8px;
+    }
+
+    .visual-container {
+      height: 320px;
+      background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 60%, #90caf9 100%);
+      border-radius: 12px;
+      margin: 20px 0;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid #7e57c2;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .visual-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(to bottom, rgba(100,181,246,0.3), transparent);
+      z-index: 1;
+    }
+    
+    .clouds {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 2;
+    }
+    
+    .cloud {
+      width: 60px;
+      height: 30px;
+      background: rgba(255,255,255,0.85);
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .cloud::before, .cloud::after {
+      content: "";
+      position: absolute;
+      background: rgba(255,255,255,0.85);
+      border-radius: 50%;
+    }
+    
+    .cloud::before {
+      width: 30px;
+      height: 30px;
+      top: -15px;
+      left: 10px;
+    }
+    
+    .cloud::after {
+      width: 25px;
+      height: 25px;
+      top: -10px;
+      right: 5px;
+    }
+
+    .building {
+      position: absolute;
+      bottom: 65px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 160px;
+      background: linear-gradient(to bottom, #7e57c2, #5e35b1);
+      border: 3px solid #4527a0;
+      border-radius: 8px;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.25);
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 15px;
+      transition: all 0.5s ease;
+    }
+    
+    .building.windows {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 4px;
+      width: 80%;
+      height: 70%;
+      margin-top: 10px;
+    }
+    
+    .window {
+      background: #e3f2fd;
+      border: 2px solid #bbdefb;
+      border-radius: 4px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+    
+    .window:nth-child(odd) {
+      background: #bbdefb;
+    }
+
+    .lightning-rod {
+      position: absolute;
+      top: -65px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 65px;
+      background: linear-gradient(to bottom, #ff9800, #f57c00);
+      border-radius: 4px;
+      z-index: 10;
+      box-shadow: 0 0 10px #ffc107;
+      border: 2px solid #e65100;
+    }
+    
+    .rod-cap {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 16px;
+      background: #ff5722;
+      border-radius: 50%;
+      border: 2px solid #e64a19;
+      z-index: 11;
+    }
+
+    .down-conductor {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 160px;
+      background: linear-gradient(to bottom, #ff9800, #f57c00);
+      z-index: 8;
+      border: 2px solid #e65100;
+    }
+
+    .ground-rod {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 45px;
+      background: linear-gradient(to bottom, #546e7a, #37474f);
+      border-radius: 8px 8px 0 0;
+      border: 2px solid #263238;
+      z-index: 6;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    .ground-rod::after {
+      content: "";
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 15px;
+      background: radial-gradient(circle, #455a64 0%, transparent 70%);
+      border-radius: 0 0 50% 50%;
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30px;
+      background: linear-gradient(to right, #5d4037, #795548, #8d6e63);
+      border-top: 3px solid #3e2723;
+      z-index: 3;
+    }
+
+    .soil-layer {
+      position: absolute;
+      bottom: 30px;
+      left: 0;
+      width: 100%;
+      height: 35px;
+      background: linear-gradient(to right, #8d6e63, #a1887f, #bcaaa4);
+      border-top: 2px solid #6d4c41;
+      z-index: 2;
+    }
+    
+    .soil-layer::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0,0,0,0.05) 10px,
+        rgba(0,0,0,0.05) 20px
+      );
+    }
+
+    .lightning {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 100px;
+      background: linear-gradient(to bottom, #ffff00, #ffd54f, #ff9800);
+      opacity: 0;
+      z-index: 20;
+      filter: blur(1px);
+      box-shadow: 0 0 15px #ffeb3b;
+      border-radius: 2px;
+      animation: lightningFlash 0.1s ease-out;
+    }
+    
+    @keyframes lightningFlash {
+      0% { opacity: 0.2; height: 20px; }
+      10% { opacity: 1; height: 100px; }
+      20% { opacity: 0.8; height: 80px; }
+      30% { opacity: 1; height: 120px; }
+      40% { opacity: 0.9; height: 100px; }
+      50% { opacity: 1; height: 130px; }
+      60% { opacity: 0; }
+      100% { opacity: 0; }
+    }
+    
+    .lightning.branch {
+      position: absolute;
+      width: 2px;
+      background: linear-gradient(to bottom, #ffff00, #ff9800);
+      opacity: 0.9;
+      transform-origin: top;
+      filter: blur(0.5px);
+    }
+    
+    .lightning.branch-1 {
+      top: -40px;
+      left: 45%;
+      height: 60px;
+      transform: rotate(-15deg);
+    }
+    
+    .lightning.branch-2 {
+      top: -20px;
+      left: 55%;
+      height: 40px;
+      transform: rotate(20deg);
+    }
+
+    .results-box {
+      background: linear-gradient(135deg, #ede7f6, #e3f2fd);
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 2px solid #d1c4e9;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .results-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed rgba(103, 58, 183, 0.3);
+      font-size: 1.05em;
+    }
+
+    .results-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .results-row strong {
+      color: #311b92;
+      font-size: 1.15em;
+      font-weight: 700;
+    }
+    
+    .results-row span {
+      font-weight: 500;
+    }
+
+    .warning {
+      background: linear-gradient(135deg, #ffebee, #ffcdd2);
+      color: #c62828;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-weight: 600;
+      display: none;
+      border-left: 5px solid #f44336;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: relative;
+      padding-left: 25px;
+    }
+    
+    .warning::before {
+      content: "⚠️";
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    
+    .warning.safety {
+      background: linear-gradient(135deg, #ffecb3, #ffe082);
+      color: #5d4037;
+      border-left-color: #ffa000;
+    }
+    
+    .warning.compliance {
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      color: #1b5e20;
+      border-left-color: #4caf50;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+    }
+
+    .info-section {
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      padding: 25px;
+      border-radius: 15px;
+      margin-top: 30px;
+      border-left: 6px solid #2e7d32;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .info-section h3 {
+      color: #1b5e20;
+      margin-bottom: 15px;
+      font-size: 1.4em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-section ul {
+      padding-left: 25px;
+      margin-top: 10px;
+    }
+
+    .info-section li {
+      margin-bottom: 12px;
+      line-height: 1.6;
+      font-size: 1.05em;
+    }
+
+    .concept-highlight {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-weight: 600;
+      color: #5d4037;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .norm-reference {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-size: 0.95em;
+      color: #01579b;
+      border-left: 4px solid #0288d1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .norm-reference h3 {
+      margin-top: 0;
+      color: #0277bd;
+      font-size: 1.2em;
+    }
+
+    .formula-box {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      margin: 18px 0;
+      border: 2px solid #e1bee7;
+      font-family: 'Courier New', monospace;
+      font-size: 1.05em;
+      overflow-x: auto;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      line-height: 1.5;
+    }
+    
+    .formula-box.highlight {
+      background: linear-gradient(135deg, #fffde7, #fff9c4);
+      border-color: #ffd54f;
+    }
+
+    .tab-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #e1bee7;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: #e0e0e0;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      font-weight: 600;
+      color: #4527a0;
+      border: 2px solid transparent;
+      border-bottom: none;
+      position: relative;
+      top: 2px;
+    }
+    
+    .tab:hover {
+      background: #d1c4e9;
+    }
+
+    .tab.active {
+      background: #4527a0;
+      color: white;
+      border-color: #311b92;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.6s ease-out;
+      padding-top: 10px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { 
+        opacity: 0; 
+        transform: translateY(15px);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0);
+      }
+    }
+
+    .standard-badge {
+      display: inline-block;
+      background: #4527a0;
+      color: white;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      margin: 4px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .standard-badge.iec {
+      background: #0288d1;
+    }
+    
+    .standard-badge.safety {
+      background: #d32f2f;
+    }
+
+    .calculation-steps {
+      background: #f9f7ff;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-size: 0.95em;
+      border: 1px solid #e1bee7;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .step {
+      margin-bottom: 12px;
+      padding-left: 25px;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .step:before {
+      content: "→";
+      position: absolute;
+      left: 8px;
+      top: 2px;
+      color: #4527a0;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    
+    .step.highlight {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      border-radius: 8px;
+      padding: 8px 15px;
+      margin: 8px 0;
+      font-weight: 500;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #4527a0, #673ab7);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 700;
+      margin: 25px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      font-size: 1.1em;
+      box-shadow: 0 4px 10px rgba(69, 39, 160, 0.4);
+    }
+
+    .download-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(69, 39, 160, 0.6);
+      background: linear-gradient(135deg, #311b92, #5e35b1);
+    }
+    
+    .download-btn:active {
+      transform: translateY(1px);
+    }
+    
+    .resistance-gauge {
+      width: 100%;
+      height: 40px;
+      background: linear-gradient(to right, #4caf50 0%, #4caf50 33%, #ff9800 33%, #ff9800 66%, #f44336 66%, #f44336 100%);
+      border-radius: 20px;
+      margin: 15px 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .gauge-pointer {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #333;
+      transform: translateX(0%);
+      left: 0;
+      border-radius: 2px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+    
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-weight: 500;
+      font-size: 0.85em;
+      color: #555;
+    }
+    
+    .soil-treatment {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border: 1px solid #90caf9;
+    }
+    
+    .soil-treatment label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      color: #0288d1;
+      cursor: pointer;
+    }
+    
+    .step-voltage-zone {
+      position: absolute;
+      bottom: 65px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(255,0,0,0.15) 0%, rgba(255,0,0,0) 70%);
+      border-radius: 50%;
+      z-index: 1;
+      display: none;
+    }
+    
+    .step-voltage-zone.visible {
+      display: block;
+      animation: pulseZone 2s infinite;
+    }
+    
+    @keyframes pulseZone {
+      0% { transform: translateX(-50%) scale(0.8); opacity: 0.7; }
+      50% { transform: translateX(-50%) scale(1.1); opacity: 0.3; }
+      100% { transform: translateX(-50%) scale(0.8); opacity: 0.7; }
+    }
+    
+    .resistance-value {
+      position: absolute;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      color: #311b92;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 10;
+      font-size: 0.9em;
+      min-width: 80px;
+      text-align: center;
+    }
+    
+    .rod-group {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 6;
+    }
+    
+    .extra-rod {
+      width: 14px;
+      height: 40px;
+      background: linear-gradient(to bottom, #546e7a, #37474f);
+      border-radius: 6px 6px 0 0;
+      border: 2px solid #263238;
+      position: relative;
+    }
+    
+    .extra-rod::after {
+      content: "";
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 12px;
+      background: radial-gradient(circle, #455a64 0%, transparent 70%);
+      border-radius: 0 0 50% 50%;
+    }
+    
+    .bonding-conductor {
+      position: absolute;
+      bottom: 65px;
+      height: 3px;
+      background: #f57c00;
+      z-index: 5;
+    }
+    
+    .building-status {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4caf50;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.85em;
+      z-index: 20;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: none;
+    }
+    
+    .building-status.danger {
+      background: #f44336;
+    }
+    
+    .building-status.warning {
+      background: #ff9800;
+    }
+    
+    .building-status.safe {
+      background: #4caf50;
+      display: block;
+    }
+    
+    .parameter-highlight {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 600;
+      color: #0288d1;
+    }
+    
+    .footer-note {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      color: #546e7a;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+    
+    .footer-note strong {
+      color: #311b92;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Simulador Didático: Aterramento e SPDA</h1>
+    <p class="subtitle">Cálculo de resistência de aterramento conforme NBR 5419, NBR 15749 e NBR 7117 com visualização interativa e análise de segurança</p>
+
+    <div class="tab-container">
+      <div class="tab active" onclick="switchTab('dimensionamento')">.Dimensionamento</div>
+      <div class="tab" onclick="switchTab('normas')">Normas Técnicas</div>
+      <div class="tab" onclick="switchTab('formulas')">Fórmulas</div>
+      <div class="tab" onclick="switchTab('recomendacoes')">Recomendações</div>
+    </div>
+
+    <div class="tab-content active" id="dimensionamento-tab">
+      <div class="simulator-grid">
+        <div class="panel">
+          <h2>📐 Parâmetros do Solo e Eletrodo</h2>
+          
+          <div class="input-group">
+            <label for="soilResistivity">Resistividade do Solo (ρ) - Ω·m</label>
+            <select id="soilResistivity" onchange="updateCalculation()">
+              <option value="10">Solo muito úmido (10 Ω·m)</option>
+              <option value="30">Solo argiloso úmido (30 Ω·m)</option>
+              <option value="50">Solo comum (50 Ω·m)</option>
+              <option value="100" selected>Solo seco (100 Ω·m)</option>
+              <option value="300">Solo arenoso (300 Ω·m)</option>
+              <option value="500">Rocha (500 Ω·m)</option>
+              <option value="1000">Solo arenoso seco (1000 Ω·m)</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="customResistivityGroup" style="display: none;">
+            <label for="customResistivity">Valor Personalizado (Ω·m)</label>
+            <div class="input-with-unit">
+              <input type="number" id="customResistivity" value="100" min="1" step="1" oninput="updateCalculation()">
+              <span class="unit">Ω·m</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="soilType">Tipo de Solo (NBR 7117)</label>
+            <select id="soilType" onchange="updateSoilFromType()">
+              <option value="10">A - Argila úmida</option>
+              <option value="30">B - Terra vegetal</option>
+              <option value="100" selected>C - Solo comum</option>
+              <option value="300">D - Solo arenoso</option>
+              <option value="1000">E - Solo rochoso</option>
+            </select>
+          </div>
+          
+          <div class="soil-treatment">
+            <label>
+              <input type="checkbox" id="soilTreatment" onchange="updateCalculation()">
+              <span>Tratamento químico do solo (reduz ρ em 50%)</span>
+            </label>
+            <p style="margin-top: 8px; font-size: 0.9em; color: #0277bd;">
+              Utiliza bentonita ou outros compostos para melhorar a condutividade do solo
+            </p>
+          </div>
+
+          <div class="input-group">
+            <label for="rodLength">Comprimento da Haste (L) - m</label>
+            <div class="input-with-unit">
+              <input type="number" id="rodLength" value="2.4" min="1" max="15" step="0.1" oninput="updateCalculation()">
+              <span class="unit">m</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="rodDiameter">Diâmetro da Haste (d) - mm</label>
+            <div class="input-with-unit">
+              <input type="number" id="rodDiameter" value="16" min="5" max="50" step="1" oninput="updateCalculation()">
+              <span class="unit">mm</span>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label for="rodMaterial">Material da Haste</label>
+            <select id="rodMaterial" onchange="updateCalculation()">
+              <option value="copper">Cobre (ρ = 1.7×10⁻⁸ Ω·m)</option>
+              <option value="galvanized" selected>Aço Galvanizado (ρ = 1.7×10⁻⁷ Ω·m)</option>
+              <option value="stainless">Aço Inoxidável (ρ = 7.2×10⁻⁷ Ω·m)</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="numRods">Número de Hastes (N)</label>
+            <input type="number" id="numRods" value="1" min="1" max="30" step="1" oninput="updateCalculation()">
+          </div>
+
+          <div class="input-group">
+            <label for="rodSpacing">Distância entre Hastes (S) - m</label>
+            <div class="input-with-unit">
+              <input type="number" id="rodSpacing" value="3" min="1" max="30" step="0.5" oninput="updateCalculation()" disabled>
+              <span class="unit">m</span>
+            </div>
+          </div>
+
+          <div class="norm-reference">
+            <strong>Referências Normativas:</strong>
+            <div style="margin-top: 10px;">
+              <span class="standard-badge">NBR 5419:2015</span>
+              <span class="standard-badge">NBR 15749:2020</span>
+              <span class="standard-badge">NBR 7117:2011</span>
+              <span class="standard-badge iec">ABNT NBR IEC 62305</span>
+            </div>
+            <p style="margin-top: 12px; line-height: 1.5;">
+              Proteção contra descargas atmosféricas, sistemas de aterramento e medição de resistividade do solo
+            </p>
+          </div>
+          
+          <div class="info-section" style="margin-top: 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-left-color: #1976d2;">
+            <h3>🔍 Dica Didática</h3>
+            <p>Experimente diferentes configurações para observar como a <span class="parameter-highlight">resistividade do solo</span> e o <span class="parameter-highlight">número de hastes</span> afetam a resistência total do sistema de aterramento.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>⚡ Visualização e Resultados</h2>
+          
+          <div class="visual-container" id="visualContainer">
+            <div class="clouds">
+              <div class="cloud"></div>
+              <div class="cloud"></div>
+              <div class="cloud"></div>
+            </div>
+            <div class="step-voltage-zone" id="stepVoltageZone"></div>
+            <div class="building">
+              <div class="building-status" id="buildingStatus">Seguro</div>
+              <div class="building windows">
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+                <div class="window"></div>
+              </div>
+            </div>
+            <div class="lightning-rod">
+              <div class="rod-cap"></div>
+            </div>
+            <div class="down-conductor"></div>
+            <div class="ground-rod"></div>
+            <div class="ground"></div>
+            <div class="soil-layer"></div>
+            <div class="resistance-value" id="resistanceValue">31.83 Ω</div>
+          </div>
+
+          <div class="calculation-steps">
+            <div class="step">Resistividade do solo: ρ = <span id="stepRho">100</span> Ω·m <span id="treatmentNote"></span></div>
+            <div class="step">Comprimento da haste: L = <span id="stepLength">2.4</span> m</div>
+            <div class="step">Diâmetro da haste: d = <span id="stepDiameter">16</span> mm (<span id="stepMaterial">Aço Galvanizado</span>)</div>
+            <div class="step">Número de hastes: N = <span id="stepNum">1</span></div>
+            <div class="step highlight">Fórmula aplicada: R₁ = (ρ / 2πL) × [ln(4L/d) - 1]</div>
+          </div>
+          
+          <div class="resistance-gauge">
+            <div class="gauge-pointer" id="gaugePointer"></div>
+          </div>
+          <div class="gauge-labels">
+            <span>Ótimo (≤5Ω)</span>
+            <span>Regular (10Ω)</span>
+            <span>Crítico (>25Ω)</span>
+          </div>
+
+          <div class="results-box">
+            <div class="results-row">
+              <span>Resistência de uma haste (R₁):</span>
+              <strong id="singleRodResistance">31.83 Ω</strong>
+            </div>
+            <div class="results-row">
+              <span>Resistência total do sistema (Rₜ):</span>
+              <strong id="totalResistance">31.83 Ω</strong>
+            </div>
+            <div class="results-row">
+              <span>Fator de eficiência (η):</span>
+              <strong id="efficiency">100 %</strong>
+            </div>
+            <div class="results-row">
+              <span>Conformidade NBR 5419:</span>
+              <strong id="complianceStatus" style="color: #2e7d32;">Dentro do limite</strong>
+            </div>
+            <div class="results-row">
+              <span>Tensão de passo estimada (10kA):</span>
+              <strong id="stepVoltage">170 V</strong>
+            </div>
+            <div class="results-row">
+              <span>Corrente máxima suportada:</span>
+              <strong id="maxCurrent">31.4 kA</strong>
+            </div>
+          </div>
+
+          <div class="warning" id="highResistanceWarning">
+            Resistência acima de 10 Ω! NBR 5419 recomenda ≤ 10 Ω para SPDA classe III/IV. Considere aumentar o número de hastes ou aplicar tratamento químico.
+          </div>
+          <div class="warning" id="spacingWarning">
+            Distância entre hastes (S) deve ser ≥ comprimento (L) para eficiência máxima. Aumente a distância para melhorar o desempenho do sistema.
+          </div>
+          <div class="warning safety" id="stepVoltageWarning">
+            Tensão de passo acima de 50V! Risco de choque elétrico para pessoas e animais. Implemente malha de equalização ou aumente o número de hastes.
+          </div>
+          <div class="warning" id="diameterWarning">
+            Diâmetro da haste abaixo do mínimo (12.7 mm) conforme NBR 15749. Utilize haste com diâmetro mínimo de 1/2 polegada.
+          </div>
+          <div class="warning compliance" id="complianceWarning" style="display: none;">
+            Sistema conforme NBR 5419! Resistência dentro dos limites aceitáveis para proteção contra descargas atmosféricas.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="normas-tab">
+      <div class="panel">
+        <h2>📚 Normas Técnicas Aplicáveis</h2>
+        
+        <div class="norm-reference">
+          <h3>NBR 5419:2015 - Proteção contra descargas atmosféricas (SPDA)</h3>
+          <ul>
+            <li><strong>Parte 1:</strong> Princípios gerais e requisitos básicos</li>
+            <li><strong>Parte 2:</strong> Gerenciamento de risco</li>
+            <li><strong>Parte 3:</strong> Danos físicos e risco à vida</li>
+            <li><strong>Parte 4:</strong> Sistemas elétricos e eletrônicos internos</li>
+          </ul>
+          <p><strong>Requisito crítico:</strong> Resistência de aterramento ≤ 10 Ω para sistemas classe III/IV</p>
+        </div>
+
+        <div class="norm-reference" style="margin-top: 20px;">
+          <h3>NBR 15749:2020 - Sistemas de aterramento</h3>
+          <ul>
+            <li>Materiais: cobre (≥95% condutividade), aço galvanizado (espessura mínima de 250μm)</li>
+            <li>Hastes: diâmetro mínimo 12.7 mm (1/2"), comprimento mínimo 2.4 m</li>
+            <li>Conexões: solda exotérmica ou conector mecânico aprovado</li>
+            <li>Malhas de aterramento: espaçamento máximo de 20m entre condutores</li>
+          </ul>
+        </div>
+
+        <div class="norm-reference" style="margin-top: 20px;">
+          <h3>NBR 7117:2011 - Investigação do solo</h3>
+          <ul>
+            <li>Classificação dos solos conforme resistividade</li>
+            <li>Método de Wenner para medição de resistividade</li>
+            <li>Correções para camadas não homogêneas</li>
+            <li>Interpretação de resultados para projeto de aterramento</li>
+          </ul>
+        </div>
+
+        <div class="norm-reference" style="margin-top: 20px; background: linear-gradient(135deg, #e3f2fd, #90caf9);">
+          <h3>ABNT NBR IEC 62305 - Proteção contra raios</h3>
+          <ul>
+            <li><strong>Níveis de proteção:</strong> I (alto risco), II, III, IV (baixo risco)</li>
+            <li><strong>Correntes de descarga:</strong> 200 kA (Nível I) até 100 kA (Nível IV)</li>
+            <li><strong>Método da esfera rolante:</strong> raios de 20m a 60m conforme nível</li>
+            <li><strong>Distanciamento de segurança:</strong> para evitar flashever interno</li>
+          </ul>
+        </div>
+        
+        <div class="info-section" style="margin-top: 25px; background: linear-gradient(135deg, #f3e5f5, #e1bee7); border-left-color: #4a148c;">
+          <h3>🔍 Aplicação Prática das Normas</h3>
+          <p>Na prática, os sistemas de aterramento devem ser projetados considerando:</p>
+          <ul>
+            <li>Uso combinado de hastes, condutores de cobre nu e malhas de aterramento</li>
+            <li>Medição da resistência com método de queda de potencial (3 pontos)</li>
+            <li>Verificação periódica conforme criticidade da instalação (6 meses a 3 anos)</li>
+            <li>Documentação completa do sistema ("as-built") com memorial de cálculo</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="formulas-tab">
+      <div class="panel">
+        <h2>🧮 Fórmulas de Dimensionamento</h2>
+        
+        <h3 style="margin-top: 25px; color: #4527a0;">1. Resistência de uma haste vertical (NBR 15749)</h3>
+        <div class="formula-box highlight">
+          R₁ = (ρ / 2πL) × [ln(4L/d) - 1]
+          <br><br>
+          <strong>Onde:</strong><br>
+          ρ = resistividade do solo (Ω·m)<br>
+          L = comprimento da haste (m)<br>
+          d = diâmetro da haste (m)<br>
+          ln = logaritmo natural
+        </div>
+
+        <h3 style="margin-top: 25px; color: #4527a0;">2. Múltiplas hastes em paralelo</h3>
+        <div class="formula-box">
+          Rₜ = R₁ / (N × η)
+          <br><br>
+          <strong>Fator de eficiência (η):</strong><br>
+          η = 1 / [1 + (ρ/(π×R₁×S)) × Σ(1/k)] para k = 1 até (N-1)
+          <br><br>
+          <strong>Onde:</strong><br>
+          N = número de hastes<br>
+          S = distância entre hastes (m)<br>
+          R₁ = resistência de uma única haste
+        </div>
+
+        <h3 style="margin-top: 25px; color: #4527a0;">3. Tensão de passo (proteção de pessoas)</h3>
+        <div class="formula-box">
+          Vₚ = (ρ × I) / (2π) × (1/x₁ - 1/x₂)
+          <br><br>
+          <strong>Onde:</strong><br>
+          I = corrente de descarga (A)<br>
+          x₁ = distância do ponto de injeção (1m)<br>
+          x₂ = distância do ponto de referência (2m)<br>
+          <strong>Limite seguro:</strong> Vₚ ≤ 50V (condições secas)
+        </div>
+
+        <h3 style="margin-top: 25px; color: #4527a0;">4. Comprimento mínimo da haste (NBR 5419)</h3>
+        <div class="formula-box">
+          Lₘᵢₙ = √(ρ × Iₘₐₓ / (2π × Vₘₐₓ))
+          <br><br>
+          <strong>Onde:</strong><br>
+          Iₘₐₓ = corrente máxima esperada (A)<br>
+          Vₘₐₓ = tensão máxima permitida (V)<br>
+          ρ = resistividade do solo (Ω·m)
+        </div>
+        
+        <div class="info-section" style="margin-top: 25px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+          <h3>💡 Notas Importantes</h3>
+          <ul>
+            <li>As fórmulas consideram solo homogêneo. Para solos estratificados, usar método de duas camadas.</li>
+            <li>O fator de eficiência (η) assume hastes dispostas em linha reta com espaçamento uniforme.</li>
+            <li>Para configurações em triângulo ou malha, usar fórmulas específicas da NBR 15749.</li>
+            <li>A tensão de passo calculada é uma estimativa conservadora para condições de pior caso.</li>
+          </ul>
+        </div>
+
+        <button class="download-btn" onclick="downloadReport()">
+          📥 Baixar Relatório Completo de Cálculos
+        </button>
+      </div>
+    </div>
+
+    <div class="tab-content" id="recomendacoes-tab">
+      <div class="panel">
+        <h2>💡 Recomendações e Boas Práticas</h2>
+        
+        <div class="info-section">
+          <h3>📊 Valores de Referência por Aplicação</h3>
+          <ul>
+            <li><strong>Residências e edifícios comerciais:</strong> R ≤ 10 Ω (NBR 5419)</li>
+            <li><strong>Subestações de energia:</strong> R ≤ 5 Ω (NBR 14039)</li>
+            <li><strong>Centrais telefônicas:</strong> R ≤ 5 Ω</li>
+            <li><strong>Hospitais e centros cirúrgicos:</strong> R ≤ 2 Ω</li>
+            <li><strong>Data centers e salas de servidores:</strong> R ≤ 1 Ω</li>
+            <li><strong>Indústrias químicas e petroquímicas:</strong> R ≤ 5 Ω + malha de equalização</li>
+          </ul>
+        </div>
+
+        <div class="info-section" style="margin-top: 25px; background: linear-gradient(135deg, #f3e5f5, #e1bee7);">
+          <h3>🔧 Técnicas de Melhoria do Aterramento</h3>
+          <ul>
+            <li><strong>Aumento do número de hastes:</strong> disposição em triângulo ou quadrado para melhor eficiência</li>
+            <li><strong>Tratamento químico do solo:</strong> uso de bentonita ou compostos condutores ao redor das hastes</li>
+            <li><strong>Hastes profundas:</strong> perfuração até camadas mais úmidas do solo (até 30m)</li>
+            <li><strong>Malha de aterramento:</strong> condutores enterrados formando grade com malhas de 5m x 5m</li>
+            <li><strong>Eletrodos de fundação:</strong> uso das armaduras de concreto como eletrodos naturais</li>
+            <li><strong>Conectores exotérmicos:</strong> solda permanente com maior confiabilidade que conectores mecânicos</li>
+          </ul>
+        </div>
+
+        <div class="info-section" style="margin-top: 25px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+          <h3>⚠️ Verificações de Segurança Obrigatórias</h3>
+          <ul>
+            <li><strong>Medição com terrômetro calibrado:</strong> método de 3 pontos (queda de potencial)</li>
+            <li><strong>Inspeção visual periódica:</strong> corrosão, danos mecânicos e conexões soltas</li>
+            <li><strong>Teste de continuidade:</strong> resistência máxima de 1 Ω entre pontos do sistema</li>
+            <li><strong>Verificação de tensões de passo e toque:</strong> especialmente em áreas acessíveis ao público</li>
+            <li><strong>Registro completo:</strong> memorial de cálculo, croquis de instalação e resultados de medições</li>
+          </ul>
+        </div>
+
+        <div class="norm-reference" style="margin-top: 25px;">
+          <strong>Períodos de verificação recomendados:</strong>
+          <ul>
+            <li><span class="standard-badge safety">Críticos</span> Sistemas de proteção contra incêndio, hospitais, centros de dados: 6 meses</li>
+            <li><span class="standard-badge">Industriais</span> Fábricas, subestações, áreas de risco: 1 ano</li>
+            <li><span class="standard-badge">Comerciais</span> Escritórios, shoppings, escolas: 2 anos</li>
+            <li><span class="standard-badge">Residenciais</span> Casas, condomínios: 3 anos</li>
+          </ul>
+        </div>
+        
+        <div class="info-section" style="margin-top: 25px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left-color: #e65100;">
+          <h3>🔍 Dica Profissional</h3>
+          <p>Sempre realize medições em diferentes condições climáticas (seco e úmido). A resistência pode variar até 300% entre períodos de seca e chuva intensa. Para projetos críticos, instale sistema de monitoramento contínuo da resistência de aterramento.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-note">
+      <p>Simulador Didático de Aterramento e SPDA - Versão 2.0</p>
+      <p>Ferramenta educacional para cursos técnicos em eletrotécnica, engenharia elétrica e segurança do trabalho</p>
+      <p><strong>Nota:</strong> Os cálculos são aproximados e destinados apenas para fins didáticos. Siga rigorosamente as normas técnicas aplicáveis.</p>
+    </div>
+  </div>
+
+  <script>
+    let currentTab = 'dimensionamento';
+    let lightningInterval;
+
+    function switchTab(tabName) {
+      // Remove active class from all tabs and contents
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Add active class to selected tab and content
+      document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+      currentTab = tabName;
+      
+      if (tabName === 'dimensionamento') {
+        updateCalculation();
+        startLightningSimulation();
+      } else {
+        stopLightningSimulation();
+      }
+    }
+
+    function updateSoilFromType() {
+      const soilType = document.getElementById('soilType').value;
+      document.getElementById('soilResistivity').value = soilType;
+      updateCalculation();
+    }
+
+    function updateCalculation() {
+      // Atualiza campo personalizado
+      const soilType = document.getElementById('soilResistivity').value;
+      if (soilType === 'custom') {
+        document.getElementById('customResistivityGroup').style.display = 'block';
+      } else {
+        document.getElementById('customResistivityGroup').style.display = 'none';
+      }
+
+      // Valores de entrada
+      const baseResistivity = soilType === 'custom' ? 
+        parseFloat(document.getElementById('customResistivity').value) : 
+        parseFloat(soilType);
+      
+      // Aplica tratamento químico se selecionado
+      const soilTreatment = document.getElementById('soilTreatment').checked;
+      const resistivity = soilTreatment ? baseResistivity * 0.5 : baseResistivity;
+      
+      const rodLength = parseFloat(document.getElementById('rodLength').value);
+      const rodDiameter = parseFloat(document.getElementById('rodDiameter').value) / 1000; // mm para m
+      const numRods = parseInt(document.getElementById('numRods').value);
+      const rodSpacing = parseFloat(document.getElementById('rodSpacing').value);
+      const rodMaterial = document.getElementById('rodMaterial').value;
+
+      // Habilita/desabilita espaçamento
+      document.getElementById('rodSpacing').disabled = (numRods <= 1);
+
+      // Atualiza passos do cálculo
+      document.getElementById('stepRho').textContent = baseResistivity;
+      document.getElementById('stepLength').textContent = rodLength;
+      document.getElementById('stepDiameter').textContent = (rodDiameter * 1000).toFixed(1);
+      
+      // Atualiza material
+      let materialText = "Aço Galvanizado";
+      if (rodMaterial === "copper") materialText = "Cobre";
+      else if (rodMaterial === "stainless") materialText = "Aço Inoxidável";
+      document.getElementById('stepMaterial').textContent = materialText;
+      
+      // Nota de tratamento
+      const treatmentNote = document.getElementById('treatmentNote');
+      if (soilTreatment) {
+        treatmentNote.textContent = "(com tratamento químico)";
+        treatmentNote.style.color = "#0288d1";
+        treatmentNote.style.fontWeight = "bold";
+      } else {
+        treatmentNote.textContent = "";
+      }
+
+      document.getElementById('stepNum').textContent = numRods;
+
+      // 1. Cálculo da resistência de uma haste (fórmula exata NBR 15749)
+      const singleRodResistance = resistivity / (2 * Math.PI * rodLength) * 
+        (Math.log(4 * rodLength / rodDiameter) - 1);
+      
+      // 2. Cálculo da resistência total com múltiplas hastes
+      let totalResistance, efficiency;
+      if (numRods === 1) {
+        totalResistance = singleRodResistance;
+        efficiency = 100;
+      } else {
+        // Cálculo do fator de eficiência com soma harmônica
+        let harmonicSum = 0;
+        for (let k = 1; k < numRods; k++) {
+          harmonicSum += 1/k;
+        }
+        
+        const mutualFactor = (resistivity / (Math.PI * singleRodResistance * rodSpacing)) * harmonicSum;
+        efficiency = 1 / (1 + mutualFactor);
+        efficiency = Math.min(1, Math.max(0.3, efficiency)); // Limita entre 30% e 100%
+        
+        totalResistance = singleRodResistance / (numRods * efficiency);
+        efficiency = efficiency * 100; // Converte para porcentagem
+      }
+
+      // 3. Verificação de conformidade
+      const isCompliant = totalResistance <= 10;
+      const complianceText = isCompliant ? 'Dentro do limite' : 'Acima do limite';
+      const complianceColor = isCompliant ? '#2e7d32' : '#d32f2f';
+      const complianceStatus = document.getElementById('complianceStatus');
+      complianceStatus.textContent = complianceText;
+      complianceStatus.style.color = complianceColor;
+
+      // 4. Estimativa de tensão de passo (I = 10kA típico)
+      const dischargeCurrent = 10000; // 10 kA
+      // Fórmula simplificada para tensão de passo entre 1m e 2m
+      const stepVoltage = (resistivity * dischargeCurrent) / (4 * Math.PI);
+      
+      // 5. Corrente máxima suportada (Vmax = 1000V para segurança)
+      const maxVoltage = 1000;
+      const maxCurrent = (maxVoltage / totalResistance / 1000);
+
+      // Formatação dos resultados
+      document.getElementById('singleRodResistance').textContent = singleRodResistance.toFixed(2) + ' Ω';
+      document.getElementById('totalResistance').textContent = totalResistance.toFixed(2) + ' Ω';
+      document.getElementById('efficiency').textContent = efficiency.toFixed(1) + ' %';
+      document.getElementById('stepVoltage').textContent = stepVoltage.toFixed(0) + ' V';
+      document.getElementById('maxCurrent').textContent = maxCurrent.toFixed(1) + ' kA';
+
+      // Atualiza medidor de resistência
+      const gaugePointer = document.getElementById('gaugePointer');
+      // Mapeia resistência (0-50Ω) para posição (0%-100%)
+      let gaugePosition = Math.min(100, Math.max(0, (totalResistance / 50) * 100));
+      gaugePointer.style.transform = `translateX(${gaugePosition}%)`;
+      
+      // Atualiza valor na visualização
+      document.getElementById('resistanceValue').textContent = totalResistance.toFixed(2) + ' Ω';
+      
+      // Atualiza status do prédio
+      const buildingStatus = document.getElementById('buildingStatus');
+      if (totalResistance <= 10) {
+        buildingStatus.textContent = "Seguro";
+        buildingStatus.className = "building-status safe";
+      } else if (totalResistance <= 25) {
+        buildingStatus.textContent = "Atenção";
+        buildingStatus.className = "building-status warning";
+      } else {
+        buildingStatus.textContent = "Perigo";
+        buildingStatus.className = "building-status danger";
+      }
+      
+      // Atualiza avisos
+      document.getElementById('highResistanceWarning').style.display = 
+        totalResistance > 10 ? 'block' : 'none';
+      
+      document.getElementById('spacingWarning').style.display = 
+        (numRods > 1 && rodSpacing < rodLength) ? 'block' : 'none';
+      
+      document.getElementById('stepVoltageWarning').style.display = 
+        stepVoltage > 50 ? 'block' : 'none';
+      
+      document.getElementById('diameterWarning').style.display = 
+        (rodDiameter * 1000 < 12.7) ? 'block' : 'none';
+      
+      document.getElementById('complianceWarning').style.display = 
+        isCompliant ? 'block' : 'none';
+      
+      // Atualiza zona de tensão de passo
+      const stepVoltageZone = document.getElementById('stepVoltageZone');
+      if (stepVoltage > 50) {
+        stepVoltageZone.classList.add('visible');
+      } else {
+        stepVoltageZone.classList.remove('visible');
+      }
+
+      // Atualiza visualização
+      updateVisualization(numRods, rodLength, rodSpacing, totalResistance, rodDiameter);
+    }
+
+    function updateVisualization(numRods, rodLength, rodSpacing, resistance, rodDiameter) {
+      const container = document.getElementById('visualContainer');
+      
+      // Atualiza cor do prédio baseado na resistência
+      const building = container.querySelector('.building');
+      if (resistance <= 10) {
+        building.style.background = 'linear-gradient(to bottom, #4caf50, #2e7d32)';
+        building.style.boxShadow = '0 8px 15px rgba(76, 175, 80, 0.4)';
+      } else if (resistance <= 25) {
+        building.style.background = 'linear-gradient(to bottom, #ff9800, #e65100)';
+        building.style.boxShadow = '0 8px 15px rgba(255, 152, 0, 0.4)';
+      } else {
+        building.style.background = 'linear-gradient(to bottom, #f44336, #c62828)';
+        building.style.boxShadow = '0 8px 15px rgba(244, 67, 54, 0.4)';
+      }
+      
+      // Atualiza cor da haste de aterramento
+      const groundRod = container.querySelector('.ground-rod');
+      if (resistance <= 10) {
+        groundRod.style.background = 'linear-gradient(to bottom, #4caf50, #2e7d32)';
+        groundRod.style.boxShadow = '0 4px 8px rgba(76, 175, 80, 0.5)';
+      } else if (resistance <= 25) {
+        groundRod.style.background = 'linear-gradient(to bottom, #ff9800, #e65100)';
+        groundRod.style.boxShadow = '0 4px 8px rgba(255, 152, 0, 0.5)';
+      } else {
+        groundRod.style.background = 'linear-gradient(to bottom, #f44336, #c62828)';
+        groundRod.style.boxShadow = '0 4px 8px rgba(244, 67, 54, 0.5)';
+      }
+      
+      // Remove hastes extras existentes
+      const existingRods = container.querySelectorAll('.extra-rod, .bonding-conductor');
+      existingRods.forEach(rod => rod.remove());
+      
+      // Cria grupo de hastes para múltiplas hastes
+      if (numRods > 1) {
+        const rodGroup = document.createElement('div');
+        rodGroup.className = 'rod-group';
+        container.appendChild(rodGroup);
+        
+        // Calcula posição das hastes
+        const maxVisibleRods = Math.min(numRods, 5);
+        const spacingPx = Math.min(rodSpacing * 15, 60); // Escala para visualização
+        const totalWidth = (maxVisibleRods - 1) * spacingPx;
+        
+        for (let i = 0; i < maxVisibleRods; i++) {
+          const extraRod = document.createElement('div');
+          extraRod.className = 'extra-rod';
+          
+          // Ajusta altura proporcional ao comprimento real
+          const height = 35 + (rodLength - 2.4) * 5;
+          extraRod.style.height = `${Math.min(60, Math.max(30, height))}px`;
+          
+          // Ajusta largura proporcional ao diâmetro
+          const width = 10 + (rodDiameter * 1000 - 12.7) * 0.3;
+          extraRod.style.width = `${Math.min(20, Math.max(10, width))}px`;
+          
+          rodGroup.appendChild(extraRod);
+          
+          // Adiciona condutor de ligação para hastes adicionais
+          if (i > 0) {
+            const connector = document.createElement('div');
+            connector.className = 'bonding-conductor';
+            connector.style.width = `${spacingPx}px`;
+            connector.style.left = `${(i - 0.5) * spacingPx - totalWidth/2 + 75}px`; // 75px é metade da largura do prédio
+            connector.style.backgroundColor = resistance <= 10 ? '#4caf50' : resistance <= 25 ? '#ff9800' : '#f44336';
+            container.appendChild(connector);
+          }
+        }
+        
+        // Centraliza o grupo
+        rodGroup.style.transform = `translateX(-50%)`;
+        rodGroup.style.gap = `${spacingPx}px`;
+      }
+    }
+
+    function simulateLightning(container) {
+      // Cria o raio principal
+      const lightning = document.createElement('div');
+      lightning.className = 'lightning';
+      container.appendChild(lightning);
+      
+      // Cria ramos do raio
+      const branch1 = document.createElement('div');
+      branch1.className = 'lightning branch branch-1';
+      container.appendChild(branch1);
+      
+      const branch2 = document.createElement('div');
+      branch2.className = 'lightning branch branch-2';
+      container.appendChild(branch2);
+      
+      // Remove após a animação
+      setTimeout(() => {
+        if (lightning.parentNode) container.removeChild(lightning);
+        if (branch1.parentNode) container.removeChild(branch1);
+        if (branch2.parentNode) container.removeChild(branch2);
+      }, 300);
+    }
+    
+    function startLightningSimulation() {
+      // Para qualquer simulação anterior
+      stopLightningSimulation();
+      
+      // Inicia nova simulação
+      lightningInterval = setInterval(() => {
+        if (Math.random() < 0.15 && currentTab === 'dimensionamento') {
+          const container = document.getElementById('visualContainer');
+          simulateLightning(container);
+        }
+      }, 2000);
+    }
+    
+    function stopLightningSimulation() {
+      if (lightningInterval) {
+        clearInterval(lightningInterval);
+        lightningInterval = null;
+      }
+    }
+
+    function downloadReport() {
+      const report = `
+RELATÓRIO DE CÁLCULO DE ATERRAMENTO
+====================================
+Data: ${new Date().toLocaleDateString('pt-BR')}
+Hora: ${new Date().toLocaleTimeString('pt-BR')}
+
+PARÂMETROS DE ENTRADA
+--------------------
+Resistividade do solo base: ${document.getElementById('stepRho').textContent} Ω·m
+${document.getElementById('treatmentNote').textContent ? 'Tratamento químico aplicado (redução de 50%)' : 'Sem tratamento químico'}
+Resistividade efetiva: ${parseFloat(document.getElementById('stepRho').textContent) * (document.getElementById('soilTreatment').checked ? 0.5 : 1)} Ω·m
+Comprimento da haste: ${document.getElementById('stepLength').textContent} m
+Diâmetro da haste: ${document.getElementById('stepDiameter').textContent} mm
+Material da haste: ${document.getElementById('stepMaterial').textContent}
+Número de hastes: ${document.getElementById('stepNum').textContent}
+Distância entre hastes: ${document.getElementById('rodSpacing').disabled ? 'N/A' : document.getElementById('rodSpacing').value + ' m'}
+
+RESULTADOS
+----------
+Resistência de uma haste: ${document.getElementById('singleRodResistance').textContent}
+Resistência total do sistema: ${document.getElementById('totalResistance').textContent}
+Fator de eficiência: ${document.getElementById('efficiency').textContent}
+Conformidade NBR 5419: ${document.getElementById('complianceStatus').textContent}
+Tensão de passo estimada (10kA): ${document.getElementById('stepVoltage').textContent}
+Corrente máxima suportada: ${document.getElementById('maxCurrent').textContent}
+
+NORMAS APLICADAS
+----------------
+• NBR 5419:2015 - Proteção contra descargas atmosféricas
+• NBR 15749:2020 - Sistemas de aterramento
+• NBR 7117:2011 - Investigação do solo
+• ABNT NBR IEC 62305 - Proteção contra raios
+
+ANÁLISE DE SEGURANÇA
+-------------------
+${document.getElementById('highResistanceWarning').style.display === 'block' ? '⚠️ RESISTÊNCIA ELEVADA: Sistema acima do limite recomendado (10 Ω). Necessário melhorias.' : '✓ RESISTÊNCIA ADEQUADA: Sistema dentro dos limites normativos.'}
+${document.getElementById('stepVoltageWarning').style.display === 'block' ? '⚠️ TENSÃO DE PASSO PERIGOSA: Acima de 50V. Risco de choque elétrico.' : '✓ TENSÃO DE PASSO SEGURA: Dentro dos limites aceitáveis.'}
+${document.getElementById('diameterWarning').style.display === 'block' ? '⚠️ DIÂMETRO INSUFICIENTE: Haste abaixo do mínimo normativo (12.7 mm).' : '✓ DIÂMETRO CONFORME: Haste atende aos requisitos da NBR 15749.'}
+${document.getElementById('spacingWarning').style.display === 'block' ? '⚠️ ESPAÇAMENTO INSUFICIENTE: Distância entre hastes menor que o comprimento.' : '✓ ESPAÇAMENTO ADEQUADO: Configuração otimizada para eficiência.'}
+
+RECOMENDAÇÕES
+-------------
+${document.getElementById('highResistanceWarning').style.display === 'block' ? '1. Aumentar o número de hastes ou aplicar tratamento químico do solo.\n2. Considerar uso de hastes mais longas ou malha de aterramento.' : '1. Sistema conforme normas técnicas.\n2. Manter programa de inspeção periódica.'}
+${document.getElementById('stepVoltageWarning').style.display === 'block' ? '3. Implementar malha de equalização de potencial nas áreas de acesso.\n4. Instalar sinalização de advertência em áreas críticas.' : ''}
+${document.getElementById('diameterWarning').style.display === 'block' ? '5. Substituir hastes por diâmetro mínimo de 12.7 mm conforme NBR 15749.' : ''}
+
+OBSERVAÇÕES
+-----------
+Este relatório foi gerado pelo Simulador Didático de Aterramento e SPDA.
+Os cálculos são aproximados e destinados exclusivamente para fins educacionais.
+Para projetos reais, consulte profissional habilitado e realize medições in loco.
+
+Simulador Didático de Aterramento e SPDA - Versão 2.0
+Ferramenta educacional para cursos técnicos em eletrotécnica
+      `;
+
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio-aterramento-${new Date().toISOString().slice(0,10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCalculation();
+      startLightningSimulation();
+      
+      // Melhoria na experiência do usuário: atualização automática ao alterar valores
+      document.querySelectorAll('input, select').forEach(element => {
+        if (!element.hasAttribute('oninput') && !element.hasAttribute('onchange')) {
+          element.addEventListener('change', updateCalculation);
+        }
+      });
+      
+      // Animação inicial do prédio
+      setTimeout(() => {
+        document.querySelector('.building').style.animation = 'fadeIn 0.8s ease-out';
+      }, 300);
+    });
+  </script>
+</body>
+</html>

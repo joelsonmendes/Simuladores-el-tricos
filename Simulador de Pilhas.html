@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulador Didático: Pilhas, Baterias e Fontes de Alimentação</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f5f9ff;
+      color: #222;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      text-align: center;
+      color: #5d4037;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 24px;
+      font-size: 1.05em;
+    }
+
+    .simulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .simulator-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: #f9f6ee;
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid #8d6e63;
+    }
+
+    .panel h2 {
+      color: #5d4037;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #5d4037;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d7ccc8;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+
+    .battery-visual {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    .battery-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      position: relative;
+    }
+
+    .battery-cell::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -12px;
+      width: 8px;
+      height: 40px;
+      background: #9e9e9e;
+      transform: translateY(-50%);
+      border-radius: 2px;
+    }
+
+    .battery-cell::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -12px;
+      width: 8px;
+      height: 40px;
+      background: #9e9e9e;
+      transform: translateY(-50%);
+      border-radius: 2px;
+    }
+
+    .connection-line {
+      height: 4px;
+      background: #9e9e9e;
+      margin: 0 8px;
+    }
+
+    .results-box {
+      background: #f5f0e6;
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+    }
+
+    .results-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .results-row strong {
+      color: #5d4037;
+    }
+
+    .warning {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-weight: bold;
+      display: none;
+    }
+
+    .info-section {
+      background: #e8f5e9;
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 24px;
+      font-size: 0.95em;
+    }
+
+    .info-section h3 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+
+    .info-section ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+
+    .info-section li {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .concept-highlight {
+      background: #fff8e1;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔋 Simulador de Pilhas, Baterias e Fontes de Alimentação</h1>
+    <p class="subtitle">Explore associações, resistência interna e efeitos de carga em fontes reais</p>
+
+    <div class="simulator-grid">
+      <div class="panel">
+        <h2>⚙️ Configuração da Fonte</h2>
+        <div class="input-group">
+          <label for="sourceType">Tipo de Fonte</label>
+          <select id="sourceType" onchange="updateSource()">
+            <option value="pilhaAA">Pilha AA (1.5V)</option>
+            <option value="pilha9V">Pilha 9V</option>
+            <option value="bateria12V">Bateria Chumbo-Ácido (12V)</option>
+            <option value="custom">Personalizada</option>
+          </select>
+        </div>
+
+        <div class="input-group" id="customVoltageGroup">
+          <label for="voltagePerCell">Tensão por Célula (V)</label>
+          <input type="number" id="voltagePerCell" value="1.5" min="0.1" step="0.1" oninput="updateSource()">
+        </div>
+
+        <div class="input-group">
+          <label for="internalResistance">Resistência Interna por Célula (Ω)</label>
+          <input type="number" id="internalResistance" value="0.15" min="0" step="0.01" oninput="updateSource()">
+        </div>
+
+        <div class="input-group">
+          <label for="numCells">Número de Células</label>
+          <input type="number" id="numCells" value="2" min="1" max="20" step="1" oninput="updateSource()">
+        </div>
+
+        <div class="input-group">
+          <label for="connectionType">Tipo de Associação</label>
+          <select id="connectionType" onchange="updateSource()">
+            <option value="series">Série</option>
+            <option value="parallel">Paralelo</option>
+          </select>
+        </div>
+
+        <div class="battery-visual" id="batteryVisual">
+          <!-- Visualização será gerada por JS -->
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🔌 Carga e Medição</h2>
+        <div class="input-group">
+          <label for="loadResistance">Resistência de Carga (Ω)</label>
+          <input type="number" id="loadResistance" value="10" min="0.1" step="0.1" oninput="updateSource()">
+        </div>
+
+        <div class="results-box">
+          <div class="results-row">
+            <span>Tensão em Vazio:</span>
+            <strong id="openCircuitVoltage">3.00 V</strong>
+          </div>
+          <div class="results-row">
+            <span>Tensão sob Carga:</span>
+            <strong id="loadedVoltage">2.96 V</strong>
+          </div>
+          <div class="results-row">
+            <span>Corrente na Carga:</span>
+            <strong id="loadCurrent">0.296 A</strong>
+          </div>
+          <div class="results-row">
+            <span>Resistência Interna Total:</span>
+            <strong id="totalInternalResistance">0.30 Ω</strong>
+          </div>
+          <div class="results-row">
+            <span>Queda de Tensão Interna:</span>
+            <strong id="internalDrop">0.09 V</strong>
+          </div>
+        </div>
+
+        <div class="warning" id="shortCircuitWarning">
+          ⚠️ ATENÇÃO: Corrente de curto-circuito muito alta! Risco de superaquecimento.
+        </div>
+        <div class="warning" id="lowVoltageWarning">
+          ⚠️ Tensão sob carga muito baixa. Fonte sobrecarregada.
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>📚 Conceitos Didáticos</h3>
+      <p>Todas as fontes reais possuem <span class="concept-highlight">resistência interna</span>, que causa queda de tensão quando há corrente. Uma fonte ideal teria resistência interna zero.</p>
+      
+      <ul>
+        <li><strong>Associação em Série</strong>: Tensões somam-se; resistências internas somam-se.</li>
+        <li><strong>Associação em Paralelo</strong>: Tensão mantém-se; resistência interna total diminui (1/R<sub>total</sub> = 1/R<sub>1</sub> + ...).</li>
+        <li><strong>Curto-circuito</strong>: Ocorre quando R<sub>carga</sub> ≈ 0. A corrente máxima é I<sub>cc</sub> = V / R<sub>interna</sub>.</li>
+        <li><strong>Fontes reais vs ideais</strong>: Em projetos reais (Arduino, IoT, etc.), a resistência interna afeta o desempenho sob carga.</li>
+      </ul>
+      
+      <p><em>Alinhado ao ensino técnico em eletrotécnica — SENAI Hub</em></p>
+    </div>
+  </div>
+
+  <script>
+    // Configurações pré-definidas
+    const sourcePresets = {
+      pilhaAA: { voltage: 1.5, internalResistance: 0.15 },
+      pilha9V: { voltage: 9, internalResistance: 1.5 },
+      bateria12V: { voltage: 12, internalResistance: 0.01 }
+    };
+
+    function updateSource() {
+      const sourceType = document.getElementById('sourceType').value;
+      const numCells = parseInt(document.getElementById('numCells').value) || 1;
+      const connectionType = document.getElementById('connectionType').value;
+      const loadResistance = parseFloat(document.getElementById('loadResistance').value) || 0.1;
+      
+      // Atualiza campos personalizados
+      if (sourceType === 'custom') {
+        document.getElementById('customVoltageGroup').style.display = 'block';
+      } else {
+        document.getElementById('customVoltageGroup').style.display = 'none';
+        document.getElementById('voltagePerCell').value = sourcePresets[sourceType].voltage;
+        document.getElementById('internalResistance').value = sourcePresets[sourceType].internalResistance;
+      }
+
+      const voltagePerCell = parseFloat(document.getElementById('voltagePerCell').value) || 1.5;
+      const internalResistancePerCell = parseFloat(document.getElementById('internalResistance').value) || 0.15;
+
+      // Calcula tensão total e resistência interna total
+      let totalVoltage, totalInternalResistance;
+      
+      if (connectionType === 'series') {
+        totalVoltage = voltagePerCell * numCells;
+        totalInternalResistance = internalResistancePerCell * numCells;
+      } else { // paralelo
+        totalVoltage = voltagePerCell;
+        totalInternalResistance = internalResistancePerCell / numCells;
+      }
+
+      // Calcula corrente e tensões
+      const totalResistance = totalInternalResistance + loadResistance;
+      const current = totalVoltage / totalResistance;
+      const loadedVoltage = current * loadResistance;
+      const internalDrop = current * totalInternalResistance;
+      
+      const isShortCircuit = loadResistance < 0.1;
+      const isOverloaded = loadedVoltage < totalVoltage * 0.7;
+
+      // Atualiza resultados
+      document.getElementById('openCircuitVoltage').textContent = totalVoltage.toFixed(2) + ' V';
+      document.getElementById('loadedVoltage').textContent = loadedVoltage.toFixed(2) + ' V';
+      document.getElementById('loadCurrent').textContent = current.toFixed(3) + ' A';
+      document.getElementById('totalInternalResistance').textContent = totalInternalResistance.toFixed(2) + ' Ω';
+      document.getElementById('internalDrop').textContent = internalDrop.toFixed(2) + ' V';
+
+      // Atualiza avisos
+      document.getElementById('shortCircuitWarning').style.display = isShortCircuit ? 'block' : 'none';
+      document.getElementById('lowVoltageWarning').style.display = (isOverloaded && !isShortCircuit) ? 'block' : 'none';
+
+      // Atualiza visualização
+      updateBatteryVisual(numCells, connectionType);
+    }
+
+    function updateBatteryVisual(numCells, connectionType) {
+      const container = document.getElementById('batteryVisual');
+      container.innerHTML = '';
+
+      const batteryGroup = document.createElement('div');
+      batteryGroup.style.display = 'flex';
+      batteryGroup.style.alignItems = 'center';
+
+      if (connectionType === 'series') {
+        // Pilhas em série: lado a lado
+        for (let i = 0; i < numCells; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'battery-cell';
+          cell.textContent = '🔋';
+          batteryGroup.appendChild(cell);
+          
+          if (i < numCells - 1) {
+            const line = document.createElement('div');
+            line.className = 'connection-line';
+            batteryGroup.appendChild(line);
+          }
+        }
+      } else {
+        // Pilhas em paralelo: empilhadas verticalmente
+        const stack = document.createElement('div');
+        stack.style.display = 'flex';
+        stack.style.flexDirection = 'column';
+        stack.style.gap = '4px';
+        
+        for (let i = 0; i < Math.min(numCells, 5); i++) { // Limita visualização a 5 pilhas
+          const cell = document.createElement('div');
+          cell.className = 'battery-cell';
+          cell.textContent = '🔋';
+          stack.appendChild(cell);
+        }
+        
+        if (numCells > 5) {
+          const more = document.createElement('div');
+          more.style.textAlign = 'center';
+          more.style.fontSize = '0.8em';
+          more.style.color = '#666';
+          more.textContent = `+${numCells - 5} células`;
+          stack.appendChild(more);
+        }
+        
+        batteryGroup.appendChild(stack);
+      }
+
+      container.appendChild(batteryGroup);
+    }
+
+    // Inicializa
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSource();
+    });
+  </script>
+</body>
+</html>
+

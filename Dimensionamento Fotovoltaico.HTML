@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="utf-12" />
+    <meta name="viewport" content="width=device-width,initial-scale=2" />
+    <title>SENAI Solar Pro — v2.0.1</title>
+
+    <!-- Fonts & Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root{
+            --azul-senai: #003b80;
+            --laranja-senai: #f36f21;
+            --bg-light: #f6f8fb;
+            --card-light: #ffffff;
+            --text-light: #0b2136;
+
+            --bg-dark: #071124;
+            --card-dark: #0f1720;
+            --text-dark: #e6f3ff;
+
+            --radius: 12px;
+            --shadow: 0 6px 18px rgba(2,12,27,0.08);
+            --gap: 16px;
+            --transition: 240ms ease;
+        }
+
+        [data-theme="light"]{
+            --bg: var(--bg-light);
+            --card: var(--card-light);
+            --text: var(--text-light);
+            --primary: var(--azul-senai);
+            --accent: var(--laranja-senai);
+        }
+        [data-theme="dark"]{
+            --bg: var(--bg-dark);
+            --card: var(--card-dark);
+            --text: var(--text-dark);
+            --primary: var(--azul-senai);
+            --accent: var(--laranja-senai);
+        }
+
+        *{box-sizing: border-box}
+        html,body{height:100%;margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+        a{color:inherit}
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 72px; /* collapsed width */
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 18px;
+            transition: width var(--transition), transform var(--transition);
+            z-index: 1100;
+        }
+        .sidebar.expanded { width: 260px; }
+        .brand {
+            display:flex;align-items:center;gap:12px;padding:10px 12px;width:100%;
+        }
+        .brand .logo {
+            width:44px;height:44px;border-radius:8px;background:linear-gradient(180deg,#0057b8,#003b80);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:18px;
+        }
+        .brand .title { font-weight:700;font-size:15px; opacity:0; transition:opacity var(--transition); white-space:nowrap }
+        .sidebar.expanded .brand .title{ opacity:1 }
+
+        .menu { margin-top:18px;width:100%;}
+        .menu-item { display:flex;align-items:center;gap:12px;padding:12px 16px;color:#fff;cursor:pointer;width:100%;transition:background var(--transition); }
+        .menu-item:hover { background: rgba(0,0,0,0.12) }
+        .menu-item .icon { width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-weight:600 }
+        .menu-text { opacity:0; transition:opacity var(--transition) }
+        .sidebar.expanded .menu-text{ opacity:1 }
+
+        .menu-bottom { margin-top:auto;padding-bottom:18px;width:100% }
+
+        /* Topbar */
+        .topbar {
+            position: fixed;
+            left:72px;
+            right:0;
+            top:0;
+            height:64px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 16px;
+            gap:12px;
+            transition:left var(--transition), background var(--transition);
+            z-index:1050;
+            background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+            backdrop-filter: blur(4px);
+        }
+        .sidebar.expanded ~ .topbar { left:260px; }
+
+        .topbar .left { display:flex;align-items:center;gap:12px }
+        .hamburger { width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);cursor:pointer }
+        .page-title { font-weight:700;font-size:18px; color:var(--primary) }
+        .top-actions { display:flex;align-items:center;gap:10px }
+
+        .theme-toggle { padding:8px 12px;border-radius:8px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:700 }
+
+        /* Main content */
+        .main {
+            margin-top:84px;
+            margin-left:72px;
+            padding:20px;
+            transition:margin-left var(--transition);
+        }
+        .sidebar.expanded ~ .main { margin-left:260px; }
+
+        .grid {
+            display:grid;
+            grid-template-columns: 1fr 420px;
+            gap:20px;
+        }
+        @media (max-width: 1100px){ .grid { grid-template-columns: 1fr 360px } }
+        @media (max-width: 880px){ .grid { grid-template-columns: 1fr } }
+
+        /* cards */
+        .card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); }
+        .form-row { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+        @media (max-width:760px){ .form-row { grid-template-columns: 1fr } }
+
+        label { display:block;font-weight:600;margin-bottom:6px;color:var(--text); }
+        input[type="text"], input[type="number"], select { width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08) }
+        .small { font-size:13px;color:rgba(0,0,0,0.6);margin-top:6px }
+
+        .btn-primary { background:var(--primary); color:#fff;border:none;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:700 }
+        .btn-accent { background:var(--accent); color:#fff;border:none;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:700 }
+
+        .result-list p { margin:8px 0;padding:0 }
+
+        /* chart container */
+        .chart-box { height:300px;padding:12px }
+
+        /* footer */
+        footer.app-footer { margin-top:24px;padding:12px;background:transparent;text-align:center;color:rgba(0,0,0,0.55) }
+
+        /* Responsive: mobile menu overlay */
+        .overlay { position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:1080;display:none }
+        .overlay.show{ display:block }
+
+        /* tiny helpers */
+        .muted{ color: rgba(0,0,0,0.55); font-size:13px }
+        .chip { display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,0.05);font-weight:700 }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-hidden="false">
+        <div class="brand" onclick="toggleSidebar()">
+            <div class="logo">SS</div>
+            <div class="title">SENAI Solar Pro</div>
+        </div>
+
+        <nav class="menu" role="navigation" aria-label="Menu">
+            <div class="menu-item" onclick="scrollToSection('calc')">
+                <div class="icon">🏠</div>
+                <div class="menu-text">Dashboard</div>
+            </div>
+            <div class="menu-item" onclick="scrollToSection('form')">
+                <div class="icon">⚙️</div>
+                <div class="menu-text">Cálculo</div>
+            </div>
+            <div class="menu-item" onclick="scrollToSection('grafico')">
+                <div class="icon">📈</div>
+                <div class="menu-text">Geração</div>
+            </div>
+            <div class="menu-item" onclick="scrollToSection('rel')">
+                <div class="icon">📄</div>
+                <div class="menu-text">Relatório</div>
+            </div>
+            <div class="menu-item" onclick="scrollToSection('config')">
+                <div class="icon">⚙️</div>
+                <div class="menu-text">Configurações</div>
+            </div>
+        </nav>
+
+        <div class="menu-bottom" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div class="menu-item" style="justify-content:center" onclick="toggleTheme()">
+                <div class="icon">🌓</div>
+                <div class="menu-text">Tema</div>
+            </div>
+            <div class="menu-item" style="justify-content:center" onclick="openSupport()">
+                <div class="icon">✉️</div>
+                <div class="menu-text">Suporte</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="left">
+            <button class="hamburger" id="hamburgerBtn" title="Abrir menu" onclick="mobileToggle()">
+                ☰
+            </button>
+            <div class="page-title">SENAI Solar Pro</div>
+            <div class="muted" style="margin-left:12px">v2.0.1 • Build 2025.11.13-01</div>
+        </div>
+        <div class="top-actions">
+            <div id="currentDate" class="muted"></div>
+            <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">Mudar Tema</button>
+        </div>
+    </header>
+
+    <!-- OVERLAY (mobile) -->
+    <div id="overlay" class="overlay" onclick="closeSidebarMobile()"></div>
+
+    <!-- MAIN -->
+    <main class="main" id="mainContent">
+        <section id="calc" class="card">
+            <h3>Dados do Projeto</h3>
+
+            <div class="form-row" style="margin-bottom:12px">
+                <div>
+                    <label>Nome do Cliente</label>
+                    <input type="text" id="cliente" placeholder="Nome do cliente">
+                </div>
+                <div>
+                    <label>Nome do Profissional</label>
+                    <input type="text" id="profissional" placeholder="Seu nome">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>Estado</label>
+                    <select id="estado">
+                        <option value="Acre">Acre</option>
+                        <option value="Alagoas">Alagoas</option>
+                        <option value="Amapá">Amapá</option>
+                        <option value="Amazonas">Amazonas</option>
+                        <option value="Bahia">Bahia</option>
+                        <option value="Ceará">Ceará</option>
+                        <option value="Distrito Federal">Distrito Federal</option>
+                        <option value="Espírito Santo">Espírito Santo</option>
+                        <option value="Goiás">Goiás</option>
+                        <option value="Maranhão">Maranhão</option>
+                        <option value="Mato Grosso">Mato Grosso</option>
+                        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
+                        <option value="Minas Gerais">Minas Gerais</option>
+                        <option value="Pará">Pará</option>
+                        <option value="Paraíba">Paraíba</option>
+                        <option value="Paraná">Paraná</option>
+                        <option value="Pernambuco">Pernambuco</option>
+                        <option value="Piauí">Piauí</option>
+                        <option value="Rio de Janeiro">Rio de Janeiro</option>
+                        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
+                        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
+                        <option value="Rondônia">Rondônia</option>
+                        <option value="Roraima">Roraima</option>
+                        <option value="Santa Catarina">Santa Catarina</option>
+                        <option value="São Paulo" selected>São Paulo</option>
+                        <option value="Sergipe">Sergipe</option>
+                        <option value="Tocantins">Tocantins</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Consumo Mensal (kWh)</label>
+                    <input type="number" id="consumo" placeholder="Ex: 450">
+                </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="form-row">
+                <div>
+                    <label>Tipo de Sistema</label>
+                    <select id="tipoSistema">
+                        <option value="ongrid">On-Grid</option>
+                        <option value="offgrid">Off-Grid</option>
+                        <option value="hibrido">Híbrido</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Potência do Módulo (W)</label>
+                    <input type="number" id="potModulo" placeholder="Ex: 550">
+                </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="form-row">
+                <div>
+                    <label>Perdas do sistema (%)</label>
+                    <input type="number" id="perdas" placeholder="Ex: 20" value="20">
+                    <div class="small">Inclui perdas do inversor, cabeamento, sujeira, etc.</div>
+                </div>
+
+                <div>
+                    <label>Autonomia (dias) — (Off-grid/Híbrido)</label>
+                    <input type="number" id="autonomia" value="2" min="1">
+                    <div class="small">Valor padrão: 2 dias (definido por você)</div>
+                </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="form-row">
+                <div>
+                    <label>Tensão do Banco (V)</label>
+                    <select id="tensao">
+                        <option value="24" selected>24 V</option>
+                        <option value="48">48 V</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Tipo de Bateria / DOD</label>
+                    <select id="tipoBateria">
+                        <option value="litio">Lítio — DOD 80%</option>
+                        <option value="agm">AGM/GEL — DOD 50%</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="height:18px"></div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn-primary" onclick="calcular()">Calcular Sistema</button>
+                <button class="btn-accent" onclick="gerarPDF()">Gerar Relatório (PDF)</button>
+            </div>
+        </section>
+
+        <section id="results" style="margin-top:20px" class="grid">
+            <div class="card">
+                <h3>Resumo do Dimensionamento</h3>
+                <div id="resultado" class="result-list">
+                    <p class="muted">Preencha os dados e clique em "Calcular Sistema".</p>
+                </div>
+            </div>
+
+            <aside>
+                <div class="card" style="margin-bottom:16px">
+                    <h4>Parâmetros</h4>
+                    <p><strong>Sistema:</strong> <span id="resSistema">—</span></p>
+                    <p><strong>HSP (estimado):</strong> <span id="resHsp">—</span> h/dia</p>
+                    <p><strong>Potência sistema:</strong> <span id="resPot">—</span> kWp</p>
+                    <p><strong>Módulos:</strong> <span id="resModulos">—</span></p>
+                    <p><strong>Banco baterias (Ah):</strong> <span id="resBateria">—</span></p>
+                    <p class="small">Versão: 2.0.1 • Build: 2025.11.13-01</p>
+                </div>
+
+                <div id="graficoCard" class="card">
+                    <h4>Previsão Geração (12 meses)</h4>
+                    <div class="chart-box">
+                        <canvas id="chartMonthly"></canvas>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <section id="rel" class="card" style="margin-top:20px">
+            <h3>Relatório</h3>
+            <p class="muted">Use o botão "Gerar Relatório (PDF)" para exportar todas as informações com o cabeçalho e rodapé técnico.</p>
+        </section>
+
+        <section id="config" class="card" style="margin-top:20px">
+            <h3>Configurações Avançadas</h3>
+            <p class="small">Irradiação por estado está pré-definida com valores médios — para precisão faça ajuste por coordenada/estação.</p>
+        </section>
+
+        <footer class="app-footer">
+            SENAI Solar Pro — Versão 2.0.1 • Build 2025.11.13-01 • suporte@senaihub.com
+        </footer>
+    </main>
+
+    <script>
+        // -------------------------
+        // Dados de irradiação (HSP médio por estado) - valores aproximados
+        // -------------------------
+        const irradiacao = {
+            "Acre": 5.3,
+            "Alagoas": 5.5,
+            "Amapá": 4.9,
+            "Amazonas": 4.0,
+            "Bahia": 5.8,
+            "Ceará": 6.2,
+            "Distrito Federal": 5.7,
+            "Espírito Santo": 5.2,
+            "Goiás": 5.7,
+            "Maranhão": 5.4,
+            "Mato Grosso": 6.0,
+            "Mato Grosso do Sul": 5.8,
+            "Minas Gerais": 5.5,
+            "Pará": 4.6,
+            "Paraíba": 5.9,
+            "Paraná": 4.5,
+            "Pernambuco": 6.0,
+            "Piauí": 6.1,
+            "Rio de Janeiro": 5.3,
+            "Rio Grande do Norte": 6.0,
+            "Rio Grande do Sul": 4.2,
+            "Rondônia": 4.7,
+            "Roraima": 5.3,
+            "Santa Catarina": 4.3,
+            "São Paulo": 4.5,
+            "Sergipe": 5.5,
+            "Tocantins": 5.8
+        };
+
+        // Seasonal factors (simple month multipliers)
+        const seasonalFactors = [1.10,1.05,1.00,0.95,0.90,0.85,0.95,1.05,1.10,1.15,1.10,1.05];
+        const monthLabels = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+        // App state
+        let chartMonthly = null;
+        let sidebar = document.getElementById('sidebar');
+        let overlay = document.getElementById('overlay');
+        let isSidebarExpanded = false;
+
+        // Initialize date/time
+        const currentDateEl = document.getElementById('currentDate');
+        function updateDateTime(){
+            const now = new Date();
+            currentDateEl.textContent = now.toLocaleString('pt-BR');
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Theme
+        function toggleTheme(){
+            const root = document.documentElement;
+            const current = root.getAttribute('data-theme');
+            root.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+        }
+
+        // Sidebar toggle
+        function toggleSidebar(){
+            isSidebarExpanded = !isSidebarExpanded;
+            if (isSidebarExpanded) sidebar.classList.add('expanded');
+            else sidebar.classList.remove('expanded');
+        }
+
+        // Mobile toggles
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        function mobileToggle(){
+            if (window.innerWidth <= 768){
+                sidebar.classList.add('expanded');
+                overlay.classList.add('show');
+            } else {
+                toggleSidebar();
+            }
+        }
+        function closeSidebarMobile(){
+            sidebar.classList.remove('expanded');
+            overlay.classList.remove('show');
+        }
+        function openSupport(){
+            window.location.href = 'mailto:suporte@senaihub.com';
+        }
+
+        // Smooth scroll
+        function scrollToSection(id){
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+            if (window.innerWidth <= 768) closeSidebarMobile();
+        }
+
+        // Calculation logic
+        function calcular(){
+            // Read inputs
+            const cliente = document.getElementById('cliente').value || 'Não informado';
+            const profissional = document.getElementById('profissional').value || 'Não informado';
+            const estado = document.getElementById('estado').value;
+            const consumoMensal = parseFloat(document.getElementById('consumo').value) || 0;
+            const tipoSistema = document.getElementById('tipoSistema').value;
+            const potModulo = parseFloat(document.getElementById('potModulo').value) || 550;
+            const perdasPct = parseFloat(document.getElementById('perdas').value) || 20;
+            const autonomiaDias = parseFloat(document.getElementById('autonomia').value) || 2;
+            const tensaoBanco = parseInt(document.getElementById('tensao').value) || 24;
+            const tipoBateria = document.getElementById('tipoBateria').value;
+
+            // DOD
+            let dod = 0.8; // default lítio
+            if (tipoBateria === 'agm') dod = 0.5;
+
+            // HSP
+            const hsp = irradiacao[estado] || 4.5;
+
+            // Consumo diário
+            const energiaDiaria = consumoMensal / 30;
+
+            // System factor (extra)
+            let fatorSistema = 1.0;
+            if (tipoSistema === 'offgrid') fatorSistema = 1.40; // 40% extra
+            if (tipoSistema === 'hibrido') fatorSistema = 1.15; // 15% extra
+
+            // perdas do sistema (decimal)
+            const perdas = perdasPct / 100;
+
+            // Potência do sistema (kWp)
+            const energiaAjustada = energiaDiaria * fatorSistema;
+            const potenciaSistema = (hsp * (1 - perdas) > 0) ? (energiaAjustada / (hsp * (1 - perdas))) : 0;
+
+            // Número de módulos
+            const numModulos = Math.max(0, Math.ceil((potenciaSistema * 1000) / potModulo));
+
+            // Bateria: capacidade necessária (Wh) para autonomia
+            const energiaAutonomiaWh = energiaDiaria * autonomiaDias * 1000; // Wh
+            // Ajuste com DOD e eficiência geral da bateria/inversor (assumir 0,9 eficiência)
+            const eficienciaSistema = 0.9;
+            const capacidadeBancoWh = energiaAutonomiaWh / (dod * eficienciaSistema);
+            const capacidadeBancoAh = capacidadeBancoWh / tensaoBanco;
+
+            // Geração mensal (12 meses) com fator sazonal
+            const geracaoMensal = seasonalFactors.map(f => potenciaSistema * hsp * 30 * f);
+            // Round to 1 decimal
+            const geracaoMensalRounded = geracaoMensal.map(v => Math.round(v * 10) / 10);
+
+            // Update UI results
+            document.getElementById('resultado').innerHTML = `
+                <p><strong>Cliente:</strong> ${cliente}</p>
+                <p><strong>Profissional:</strong> ${profissional}</p>
+                <p><strong>Estado:</strong> ${estado} (HSP ≈ ${hsp} h/dia)</p>
+                <p><strong>Consumo médio diário:</strong> ${energiaDiaria.toFixed(2)} kWh/dia</p>
+                <p><strong>Fator do sistema (tipo):</strong> ${fatorSistema} (${tipoSistema})</p>
+                <p><strong>Potência necessária (kWp):</strong> ${potenciaSistema.toFixed(2)} kWp</p>
+                <p><strong>Nº módulos de ${potModulo}W:</strong> ${numModulos}</p>
+                ${ (tipoSistema !== 'ongrid') ? `<p><strong>Banco de baterias estimado:</strong> ${capacidadeBancoAh.toFixed(0)} Ah @ ${tensaoBanco}V (≈ ${(capacidadeBancoWh/1000).toFixed(2)} kWh) — DOD ${Math.round(dod*100)}%</p>` : `<p><em>Sistema On-Grid: banco de baterias não calculado.</em></p>` }
+                <p class="muted">Perdas consideradas: ${perdasPct}% • Eficiência baterias/inversor assumida: ${Math.round(eficienciaSistema*100)}%</p>
+            `;
+
+            // Update aside quick summary
+            document.getElementById('resSistema').textContent = tipoSistema.toUpperCase();
+            document.getElementById('resHsp').textContent = hsp;
+            document.getElementById('resPot').textContent = potenciaSistema.toFixed(2);
+            document.getElementById('resModulos').textContent = numModulos;
+            document.getElementById('resBateria').textContent = (tipoSistema !== 'ongrid') ? `${Math.round(capacidadeBancoAh)} Ah` : '—';
+
+            // Render chart
+            renderChart(geracaoMensalRounded);
+
+            // store last results for PDF
+            window.lastCalculation = {
+                cliente, profissional, estado, energiaDiaria, potenciaSistema, numModulos, capacidadeBancoAh,
+                tensaoBanco, tipoBateria, dod, autonomiaDias, perdasPct, geracaoMensal: geracaoMensalRounded, potModulo
+            };
+        }
+
+        function renderChart(data){
+            const ctx = document.getElementById('chartMonthly').getContext('2d');
+            if (chartMonthly) chartMonthly.destroy();
+            chartMonthly = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: 'Geração Mensal (kWh)',
+                        data: data,
+                        backgroundColor: Array.from({length:12}, (_,i) => i===(new Date().getMonth()) ? 'rgba(51, 122, 255, 0.9)' : 'rgba(3,78,138,0.85)'),
+                        borderRadius: 6,
+                        barThickness: 18
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend:{ display:false }
+                    },
+                    scales: {
+                        y: { beginAtZero:true }
+                    }
+                }
+            });
+        }
+
+        // PDF generation with jsPDF
+        async function gerarPDF(){
+            if (!window.lastCalculation){
+                alert('Execute o cálculo antes de gerar o relatório.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+
+            const leftMargin = 40;
+            let y = 40;
+
+            // Header - logo placeholder + title
+            pdf.setFillColor(0,59,128); // azul-senai
+            pdf.rect(0,0,595,70,'F');
+            pdf.setFontSize(16);
+            pdf.setTextColor(255,255,255);
+            pdf.text('SENAI Solar Pro', leftMargin, 45);
+            pdf.setFontSize(10);
+            pdf.text('Relatório de Dimensionamento Fotovoltaico', leftMargin, 62);
+
+            // Meta (cliente/profissional/data)
+            pdf.setTextColor(0,0,0);
+            pdf.setFontSize(11);
+            y = 90;
+            const now = new Date();
+            const dataHora = now.toLocaleString('pt-BR');
+            pdf.text(`Cliente: ${window.lastCalculation.cliente}`, leftMargin, y); y+=16;
+            pdf.text(`Profissional: ${window.lastCalculation.profissional}`, leftMargin, y); y+=16;
+            pdf.text(`Estado: ${window.lastCalculation.estado}`, leftMargin, y); y+=16;
+            pdf.text(`Data/Hora: ${dataHora}`, leftMargin, y); y+=22;
+
+            // Calculation summary
+            pdf.setFontSize(12);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('Resumo do Dimensionamento', leftMargin, y); y+=16;
+            pdf.setFont(undefined, 'normal');
+            pdf.text(`Consumo médio diário: ${window.lastCalculation.energiaDiaria.toFixed(2)} kWh/dia`, leftMargin, y); y+=14;
+            pdf.text(`Potência necessária: ${window.lastCalculation.potenciaSistema.toFixed(2)} kWp`, leftMargin, y); y+=14;
+            pdf.text(`Módulos de ${window.lastCalculation.potModulo}W: ${window.lastCalculation.numModulos}`, leftMargin, y); y+=14;
+            if (document.getElementById('tipoSistema').value !== 'ongrid'){
+                pdf.text(`Banco de baterias estimado: ${Math.round(window.lastCalculation.capacidadeBancoAh)} Ah @ ${window.lastCalculation.tensaoBanco}V`, leftMargin, y); y+=14;
+                pdf.text(`Autonomia: ${window.lastCalculation.autonomiaDias} dias • DOD: ${Math.round(window.lastCalculation.dod*100)}%`, leftMargin, y); y+=16;
+            } else {
+                pdf.text('Sistema On-Grid: banco de baterias não calculado.', leftMargin, y); y+=16;
+            }
+
+            // Add chart image
+            // Convert chart canvas to data URL
+            try {
+                const chartCanvas = document.getElementById('chartMonthly');
+                const dataUrl = chartCanvas.toDataURL('image/png', 1.0);
+                // Determine width to fit page
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const imgW = pageWidth - leftMargin*2;
+                const imgH = (chartCanvas.height / chartCanvas.width) * imgW;
+                pdf.addImage(dataUrl, 'PNG', leftMargin, y, imgW, imgH);
+                y += imgH + 12;
+            } catch (err) {
+                console.warn('Erro ao adicionar gráfico no PDF', err);
+            }
+
+            // Monthly values table
+            pdf.setFontSize(11);
+            pdf.text('Geração Mensal Estimada (kWh):', leftMargin, y); y+=14;
+            window.lastCalculation.geracaoMensal.forEach((v,i) => {
+                pdf.text(`${monthLabels[i]}: ${v.toFixed(1)} kWh`, leftMargin, y);
+                y += 12;
+                if (y > 720) { pdf.addPage(); y = 40; }
+            });
+
+            // Footer technical
+            const pageCount = pdf.getNumberOfPages();
+            for (let p=1; p<=pageCount; p++){
+                pdf.setPage(p);
+                pdf.setFontSize(9);
+                pdf.setTextColor(120);
+                pdf.text(`SENAI Solar Pro — Versão 2.0.1 • Build 2025.11.13-01 • suporte@senaihub.com`, leftMargin, pdf.internal.pageSize.getHeight() - 30);
+                pdf.text(`Página ${p} de ${pageCount}`, pdf.internal.pageSize.getWidth() - 100, pdf.internal.pageSize.getHeight() - 30);
+            }
+
+            pdf.save(`relatorio_sena i_solar_pro_${(new Date()).toISOString().slice(0,10)}.pdf`);
+        }
+
+        // Initialize small defaults
+        document.addEventListener('DOMContentLoaded', function(){
+            // start collapsed
+            sidebar.classList.remove('expanded');
+            // redraw date/time
+            updateDateTime();
+            // sample initial empty chart
+            renderChart([0,0,0,0,0,0,0,0,0,0,0,0]);
+        });
+
+        // small UX: close sidebar on resize for mobile
+        window.addEventListener('resize', function(){
+            if (window.innerWidth <= 768){
+                sidebar.classList.remove('expanded');
+            }
+        });
+
+    </script>
+</body>
+</html>

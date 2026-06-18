@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IoT Edu - Gerador de Código para ESP32</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 25px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c6fbb;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #444;
+    }
+    select, textarea, input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    button {
+      background: #2c6fbb;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #1e5a99;
+    }
+    #output {
+      margin-top: 25px;
+      padding: 15px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      white-space: pre;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 14px;
+      display: none;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>IoT Edu – Gerador de Código para ESP32</h1>
+
+    <label for="sensorType">Tipo de Sensor:</label>
+    <select id="sensorType">
+      <!-- Sensores ambientais -->
+      <option value="dht22">DHT22 – Temperatura e Umidade</option>
+      <option value="bme280">BME280 – Temp, Umidade e Pressão</option>
+      <option value="ds18b20">DS18B20 – Temperatura (OneWire)</option>
+      
+      <!-- Qualidade do ar e gases -->
+      <option value="mq135">MQ-135 – Qualidade do Ar (CO₂, NH₃)</option>
+      <option value="mq2">MQ-2 – Gás Inflamável / Fumaça</option>
+      <option value="mq7">MQ-7 – Monóxido de Carbono (CO)</option>
+      <option value="mq131">MQ-131 – Ozônio (O₃)</option>
+      
+      <!-- Luz e movimento -->
+      <option value="ldr">LDR – Intensidade Luminosa</option>
+      <option value="pir">PIR – Detecção de Movimento</option>
+      <option value="ultrassonico">HC-SR04 – Distância por Ultrassom</option>
+      <option value="aj_sr04m">AJ-SR04M – Ultrassom à Prova d'Água</option>
+      
+      <!-- Solo e umidade -->
+      <option value="higr_solo">Sensor de Umidade do Solo</option>
+      
+      <!-- Som e vibração -->
+      <option value="microfone">Módulo Microfone (KY-038)</option>
+      
+      <!-- Biometria / Saúde -->
+      <option value="max30100">MAX30100 – Frequência Cardíaca e Oxímetro</option>
+      <option value="max30102">MAX30102 – Frequência Cardíaca e Oxímetro (melhorado)</option>
+      
+      <!-- ADC Externo -->
+      <option value="ads1115">ADS1115 – ADC 16 bits 4 canais</option>
+      
+      <!-- Luminosidade I2C -->
+      <option value="bh1750">BH1750 – Sensor de Lux (I2C)</option>
+      
+      <!-- Movimento 6 eixos -->
+      <option value="mpu6050">MPU6050 – Acelerômetro + Giroscópio</option>
+      
+      <!-- CO₂ e COV -->
+      <option value="ccs811">CCS811 – CO₂ e Compostos Orgânicos Voláteis</option>
+      
+      <!-- Outros comuns em aulas -->
+      <option value="potenciometro">Potenciômetro – Entrada Analógica</option>
+      <option value="flame">Sensor de Chama</option>
+      <option value="rele">Módulo Relé – Saída Digital</option>
+      <option value="buzzer">Buzzer Passivo – Alerta Sonoro</option>
+    </select>
+
+    <label for="readInterval">Intervalo de Leitura (segundos):</label>
+    <input type="number" id="readInterval" min="1" max="3600" value="10" />
+
+    <label for="action">Ação Condicional (opcional):</label>
+    <textarea id="action" placeholder="Ex: Acender LED se temperatura > 30°C ou enviar alerta se gás > 2000"></textarea>
+
+    <label for="networkSsid">SSID da Rede Wi-Fi:</label>
+    <input type="text" id="networkSsid" value="SENAINODE" />
+
+    <label for="networkPass">Senha da Rede Wi-Fi:</label>
+    <input type="password" id="networkPass" value="senai2025" />
+
+    <label for="outputLang">Linguagem de Saída:</label>
+    <select id="outputLang">
+      <option value="cpp">C++ (Arduino)</option>
+      <option value="micropython">MicroPython</option>
+    </select>
+
+    <button onclick="generateCode()">Gerar Código</button>
+
+    <pre id="output"></pre>
+
+    <div class="footer">
+      Ferramenta educacional para aulas de IoT – SENAI HUB | Desenvolvido por Joelson Mendes
+    </div>
+  </div>
+
+  <script>
+    function generateCode() {
+      const sensorType = document.getElementById('sensorType').value;
+      const interval = parseInt(document.getElementById('readInterval').value) * 1000;
+      const action = document.getElementById('action').value.trim();
+      const ssid = document.getElementById('networkSsid').value;
+      const password = document.getElementById('networkPass').value;
+      const lang = document.getElementById('outputLang').value;
+
+      let code = '';
+
+      if (lang === 'cpp') {
+        switch(sensorType) {
+          case 'dht22':
+            code = `#include <WiFi.h>
+#include <DHT.h>
+
+#define DHTPIN 4
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  float temp = dht.readTemperature();
+  float hum = dht.readHumidity();
+
+  if (isnan(temp) || isnan(hum)) {
+    Serial.println("Erro na leitura do DHT22");
+    return;
+  }
+
+  Serial.printf("Temperatura: %.2f°C, Umidade: %.2f%%\\n", temp, hum);
+
+  // Ação personalizada do aluno
+  ${action ? `  // ${action}\n` : ''}
+  if (temp > 30.0) {
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'bme280':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+Adafruit_BME280 bme;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  bool status = bme.begin(0x76);
+  if (!status) {
+    Serial.println("BME280 não encontrado!");
+    while(1);
+  }
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  float temp = bme.readTemperature();
+  float hum = bme.readHumidity();
+  float pressure = bme.readPressure() / 100.0F;
+  float altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
+
+  Serial.printf("Temp: %.2f°C, Umid: %.2f%%, Press: %.2f hPa, Alt: %.2f m\\n", temp, hum, pressure, altitude);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (temp > 35.0) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'ds18b20':
+            code = `#include <WiFi.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 4
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  sensors.begin();
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  sensors.requestTemperatures();
+  float temp = sensors.getTempCByIndex(0);
+
+  if (temp == DEVICE_DISCONNECTED_C) {
+    Serial.println("Erro: DS18B20 desconectado");
+    return;
+  }
+
+  Serial.printf("Temperatura: %.2f°C\\n", temp);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (temp > 40.0) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'mq135':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int MQ135_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int airValue = analogRead(MQ135_PIN);
+  Serial.printf("Qualidade do ar (MQ-135): %d\\n", airValue);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (airValue > 2000) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'mq2':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int MQ2_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int gasValue = analogRead(MQ2_PIN);
+  Serial.printf("Gás inflamável (MQ-2): %d\\n", gasValue);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (gasValue > 1500) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'mq7':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int MQ7_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int coValue = analogRead(MQ7_PIN);
+  Serial.printf("Monóxido de Carbono (MQ-7): %d\\n", coValue);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (coValue > 1800) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'mq131':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int MQ131_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int ozoneValue = analogRead(MQ131_PIN);
+  Serial.printf("Ozônio (MQ-131): %d\\n", ozoneValue);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (ozoneValue > 2500) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'ldr':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int LDR_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int ldrValue = analogRead(LDR_PIN);
+  Serial.printf("Luz ambiente (LDR): %d\\n", ldrValue);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (ldrValue < 1000) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'pir':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int PIR_PIN = 13;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIR_PIN, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int motion = digitalRead(PIR_PIN);
+  Serial.printf("Movimento: %s\\n", motion ? "SIM" : "NÃO");
+
+  ${action ? `  // ${action}\n` : ''}
+  if (motion) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(2000);
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  delay(100);
+}`;
+            break;
+
+          case 'ultrassonico':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int TRIG_PIN = 5;
+const int ECHO_PIN = 18;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+long getDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  long duration = pulseIn(ECHO_PIN, HIGH);
+  return duration * 0.034 / 2;
+}
+
+void loop() {
+  long distance = getDistance();
+  Serial.printf("Distância: %ld cm\\n", distance);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (distance < 20) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+            
+          case 'aj_sr04m':
+            // Sensor ultrassônico à prova d'água (compatível com HC-SR04)
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+// AJ-SR04M usa os mesmos pinos TRIG e ECHO (nível lógico 3.3V ou 5V)
+const int TRIG_PIN = 5;
+const int ECHO_PIN = 18;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+  Serial.println("Sensor AJ-SR04M (à prova d'água) inicializado.");
+}
+
+long getDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  long duration = pulseIn(ECHO_PIN, HIGH, 30000); // timeout 30ms
+  if (duration == 0) return 999; // sem eco
+  return duration * 0.034 / 2;
+}
+
+void loop() {
+  long distance = getDistance();
+  Serial.printf("Distância (AJ-SR04M): %ld cm\\n", distance);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (distance < 30 && distance > 0) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    Serial.println("Objeto muito próximo!");
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'higr_solo':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int HYGR_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int soilMoisture = analogRead(HYGR_PIN);
+  // Valor alto = seco, valor baixo = úmido (depende do sensor)
+  Serial.printf("Umidade do solo: %d\\n", soilMoisture);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (soilMoisture > 3000) digitalWrite(LED_BUILTIN, HIGH); // solo seco
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'microfone':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int MIC_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int soundLevel = analogRead(MIC_PIN);
+  Serial.printf("Nível de som: %d\\n", soundLevel);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (soundLevel > 2500) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'potenciometro':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int POT_PIN = 34;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int potValue = analogRead(POT_PIN);
+  Serial.printf("Valor do potenciômetro: %d\\n", potValue);
+
+  ${action ? `  // ${action}\n` : ''}
+  if (potValue > 2000) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'flame':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int FLAME_PIN = 13;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(FLAME_PIN, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int flame = digitalRead(FLAME_PIN);
+  // HIGH = sem chama, LOW = chama detectada (depende do módulo)
+  Serial.printf("Chama detectada: %s\\n", flame ? "NÃO" : "SIM");
+
+  ${action ? `  // ${action}\n` : ''}
+  if (!flame) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+
+  delay(${interval});
+}`;
+            break;
+
+          case 'rele':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int RELAY_PIN = 12;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW); // início seguro
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  // Exemplo: ativar relé a cada 30s
+  Serial.println("Ativando relé por 5s...");
+  digitalWrite(RELAY_PIN, HIGH);
+  delay(5000);
+  digitalWrite(RELAY_PIN, LOW);
+  delay(${interval - 5000});
+}`;
+            break;
+
+          case 'buzzer':
+            code = `#include <WiFi.h>
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+const int BUZZER_PIN = 15;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(BUZZER_PIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  // Toque curto no buzzer
+  tone(BUZZER_PIN, 1000, 200);
+  delay(1000);
+  Serial.println("Buzzer acionado");
+
+  ${action ? `  // ${action}\n` : ''}
+  
+  delay(${interval});
+}`;
+            break;
+          
+          // ==================== NOVOS SENSORES ====================
+          
+          case 'max30100':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include "MAX30100.h"
+
+MAX30100 sensor;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  if (!sensor.begin()) {
+    Serial.println("MAX30100 não encontrado!");
+    while(1);
+  }
+  sensor.setMode(MAX30100_MODE_HR);
+  sensor.setLedsCurrent(50, 50);
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  sensor.update();
+  uint16_t hr = sensor.getHeartRate();
+  uint16_t spo2 = sensor.getSpO2();
+  
+  Serial.printf("BPM: %d, SpO2: %d%%\\n", hr, spo2);
+  
+  ${action ? `  // ${action}\n` : ''}
+  if (hr > 100) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+  
+  delay(${interval});
+}`;
+            break;
+            
+          case 'max30102':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include "MAX30105.h"
+#include "spo2_algorithm.h"
+
+MAX30105 sensor;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  if (!sensor.begin()) {
+    Serial.println("MAX30102 não encontrado!");
+    while(1);
+  }
+  sensor.setup();
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  long irValue = sensor.getIR();
+  if (irValue > 50000) {
+    Serial.printf("Frequência cardíaca detectada: %ld\\n", irValue);
+  } else {
+    Serial.println("Sensor sem contato com a pele");
+  }
+  
+  ${action ? `  // ${action}\n` : ''}
+  if (irValue > 70000) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+  
+  delay(${interval});
+}`;
+            break;
+            
+          case 'ads1115':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include <Adafruit_ADS1X15.h>
+
+Adafruit_ADS1115 ads;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  if (!ads.begin()) {
+    Serial.println("ADS1115 não encontrado!");
+    while(1);
+  }
+  ads.setGain(GAIN_TWOTHIRDS);  // ±6.144V
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  int16_t adc0 = ads.readADC_SingleEnded(0);
+  int16_t adc1 = ads.readADC_SingleEnded(1);
+  int16_t adc2 = ads.readADC_SingleEnded(2);
+  int16_t adc3 = ads.readADC_SingleEnded(3);
+  
+  Serial.printf("ADC0: %d, ADC1: %d, ADC2: %d, ADC3: %d\\n", adc0, adc1, adc2, adc3);
+  
+  ${action ? `  // ${action}\n` : ''}
+  if (adc0 > 20000) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+  
+  delay(${interval});
+}`;
+            break;
+            
+          case 'bh1750':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include <BH1750.h>
+
+BH1750 lightMeter;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  if (!lightMeter.begin()) {
+    Serial.println("BH1750 não encontrado!");
+    while(1);
+  }
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  float lux = lightMeter.readLightLevel();
+  Serial.printf("Luminosidade: %.2f lux\\n", lux);
+  
+  ${action ? `  // ${action}\n` : ''}
+  if (lux < 10) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+  
+  delay(${interval});
+}`;
+            break;
+            
+          case 'mpu6050':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include <MPU6050.h>
+
+MPU6050 mpu;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  if (!mpu.begin()) {
+    Serial.println("MPU6050 não encontrado!");
+    while(1);
+  }
+  mpu.calcGyroOffsets(true);
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  mpu.update();
+  float temp = mpu.getTemp();
+  float ax = mpu.getAccX();
+  float ay = mpu.getAccY();
+  float az = mpu.getAccZ();
+  float gx = mpu.getGyroX();
+  float gy = mpu.getGyroY();
+  float gz = mpu.getGyroZ();
+  
+  Serial.printf("Temp: %.2f°C, Acc: (%.2f, %.2f, %.2f), Gyro: (%.2f, %.2f, %.2f)\\n",
+                temp, ax, ay, az, gx, gy, gz);
+  
+  ${action ? `  // ${action}\n` : ''}
+  if (abs(ax) > 1.5 || abs(ay) > 1.5) digitalWrite(LED_BUILTIN, HIGH);
+  else digitalWrite(LED_BUILTIN, LOW);
+  
+  delay(${interval});
+}`;
+            break;
+            
+          case 'ccs811':
+            code = `#include <WiFi.h>
+#include <Wire.h>
+#include "Adafruit_CCS811.h"
+
+Adafruit_CCS811 ccs;
+
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+  if (!ccs.begin()) {
+    Serial.println("CCS811 não encontrado!");
+    while(1);
+  }
+  while(!ccs.available());
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConectado ao Wi-Fi");
+}
+
+void loop() {
+  if (ccs.available()) {
+    if (!ccs.readData()) {
+      uint16_t co2 = ccs.geteCO2();
+      uint16_t tvoc = ccs.getTVOC();
+      Serial.printf("CO₂: %d ppm, COV: %d ppb\\n", co2, tvoc);
+      
+      ${action ? `      // ${action}\n` : ''}
+      if (co2 > 1000) digitalWrite(LED_BUILTIN, HIGH);
+      else digitalWrite(LED_BUILTIN, LOW);
+    } else {
+      Serial.println("Erro na leitura do CCS811");
+    }
+  }
+  delay(${interval});
+}`;
+            break;
+
+          default:
+            code = "// Sensor não suportado ainda. Escolha outro da lista.";
+        }
+      } else if (lang === 'micropython') {
+        // MicroPython: apenas modelos genéricos (expansível)
+        code = `# MicroPython para ESP32 - Sensor: ${sensorType}
+import network
+import time
+from machine import Pin, ADC, I2C
+
+# Configuração Wi-Fi
+ssid = "${ssid}"
+password = "${password}"
+sta_if = network.WLAN(network.STA_IF)
+sta_if.active(True)
+sta_if.connect(ssid, password)
+
+while not sta_if.isconnected():
+    time.sleep(0.5)
+print("Conectado ao Wi-Fi")
+
+# Configurações genéricas
+led = Pin(2, Pin.OUT)
+
+# Implemente aqui a lógica específica para o sensor ${sensorType}
+# Dica: use bibliotecas como 'dht', 'bme280', 'onewire' conforme necessário
+
+while True:
+    print("Lendo sensor ${sensorType}...")
+    ${action ? `    # ${action}\n` : ''}
+    time.sleep(${interval / 1000});
+`;
+      }
+
+      const output = document.getElementById('output');
+      output.textContent = code;
+      output.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

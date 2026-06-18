@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Plataforma de manutenção preditiva inteligente para indústrias - Duoeletro" />
+  <title>Duoeletro - Plataforma de Manutenção Preditiva</title>
+
+  <!-- Ícones e Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#8B5CF6',
+            accent: '#10B981',
+            background: '#111827',
+            surface: '#1F2937',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Estilos Componentes -->
+  <link rel="stylesheet" href="./css/components.css" />
+</head>
+<body class="bg-background text-gray-100 min-h-screen font-sans">
+  <!-- Skip link -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-white px-3 py-2 rounded z-50">
+    Ir para conteúdo principal
+  </a>
+
+  <!-- Header -->
+  <header id="main-header" class="bg-surface shadow-md p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-primary">Duoeletro</h1>
+    <button id="theme-toggle" class="p-2 rounded-full bg-gray-800 text-gray-300 hover:text-white">
+      <i class="fas fa-moon"></i>
+    </button>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container mx-auto px-4 py-6 space-y-8">
+    <!-- Health Score com Simulador -->
+    <section aria-labelledby="health-score-title" class="bg-surface rounded-xl p-6 border-l-4 border-accent">
+      <h2 id="health-score-title" class="text-xl font-bold text-accent mb-4 flex items-center">
+        <i class="fas fa-heartbeat mr-2"></i> Health Score (Simulação Interativa)
+      </h2>
+      <div class="text-center mb-4">
+        <div id="health-score-display" class="radial-progress [--value:85] [--size:12rem] [--thickness:1rem] text-accent text-2xl font-bold">
+          85%
+        </div>
+        <p class="mt-2 text-gray-400">Ajuste os parâmetros abaixo para simular falhas</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Vibração (mm/s)</label>
+          <input type="range" id="vib-slider" min="0" max="10" step="0.1" value="2.1" class="w-full">
+          <span id="vib-value" class="text-xs text-gray-300">2.1 mm/s</span>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Temperatura (°C)</label>
+          <input type="range" id="temp-slider" min="30" max="100" value="78" class="w-full">
+          <span id="temp-value" class="text-xs text-gray-300">78°C</span>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Consumo (%)</label>
+          <input type="range" id="power-slider" min="0" max="50" value="15" class="w-full">
+          <span id="power-value" class="text-xs text-gray-300">+15%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alertas Simulados -->
+    <section aria-labelledby="alerts-title" class="bg-surface rounded-xl p-6 border-l-4 border-secondary">
+      <div class="flex justify-between items-center">
+        <h2 id="alerts-title" class="text-xl font-bold text-secondary mb-4 flex items-center">
+          <i class="fas fa-bell mr-2"></i> Alertas em Tempo Real (Simulados)
+        </h2>
+        <button id="simulate-alert" class="text-xs bg-red-900 hover:bg-red-800 text-red-200 px-3 py-1 rounded">
+          Simular Novo Alerta
+        </button>
+      </div>
+      <div id="alerts-container" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+        <!-- Alertas iniciais já carregados -->
+        <div class="bg-gray-900 p-3 rounded-lg border border-red-500/50">
+          <div class="flex flex-wrap justify-between gap-2 items-center">
+            <div><span class="font-bold text-red-400">CRÍTICO</span> <span class="text-sm text-gray-400 ml-2">Motor de Indução - Linha 2</span></div>
+            <span class="text-xs text-gray-500 whitespace-nowrap">2 min atrás</span>
+          </div>
+          <p class="mt-2 text-gray-300">Vibração excessiva detectada: 7.5 mm/s (Limite: 4.5 mm/s)</p>
+          <button class="mt-2 text-sm text-secondary hover:underline flex items-center">
+            <i class="fas fa-play-circle mr-1"></i> Iniciar Análise de Falha
+          </button>
+        </div>
+        <div class="bg-gray-900 p-3 rounded-lg border border-yellow-500/50">
+          <div class="flex flex-wrap justify-between gap-2 items-center">
+            <div><span class="font-bold text-yellow-400">ATENÇÃO</span> <span class="text-sm text-gray-400 ml-2">Transformador - Subestação A</span></div>
+            <span class="text-xs text-gray-500 whitespace-nowrap">15 min atrás</span>
+          </div>
+          <p class="mt-2 text-gray-300">Temperatura do óleo: 85°C (Aumento de 8°C nas últimas 2h)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Análise Preditiva com IA -->
+    <section aria-labelledby="predictive-title" class="bg-surface rounded-xl p-6">
+      <h2 id="predictive-title" class="text-2xl font-bold text-primary mb-6 flex items-center">
+        <i class="fas fa-brain mr-2"></i> Análise Preditiva com IA (Simulada)
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <h3 class="text-xl font-semibold text-accent">Previsão de Falhas</h3>
+          <div class="bg-gray-900 p-4 rounded-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-gray-300">Probabilidade de Falha (72h):</span>
+              <span id="failure-prob" class="text-2xl font-bold text-secondary">32%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-4">
+              <div id="failure-bar" class="bg-secondary h-4 rounded-full w-[32%]"></div>
+            </div>
+            <div class="mt-4 space-y-2 text-sm">
+              <div class="flex justify-between"><span class="text-gray-400">Componente crítico:</span> <span id="critical-part">Rolamento do Motor</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">MTBF Atual:</span> <span id="mtbf">1.250 horas</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="text-xl font-semibold text-secondary">Simulação Digital Twin</h3>
+          <div class="bg-gray-900 p-4 rounded-lg">
+            <div class="flex flex-wrap gap-2 mb-4">
+              <button class="px-3 py-1 bg-secondary text-white text-xs rounded">Cenário Atual</button>
+              <button class="px-3 py-1 bg-red-700 text-white text-xs rounded">Simular Falha</button>
+              <button class="px-3 py-1 bg-green-700 text-white text-xs rounded">Simular Otimização</button>
+            </div>
+            <div id="digital-twin-viewer" class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
+              <div id="machine-animation" class="w-16 h-16 bg-blue-600 rounded-full animate-pulse"></div>
+              <p id="twin-status" class="absolute bottom-2 text-gray-400">Equipamento: Operando normalmente</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Treinamento Contextual -->
+    <section aria-labelledby="training-title" class="bg-surface rounded-xl p-6">
+      <h2 id="training-title" class="text-2xl font-bold text-primary mb-6 flex items-center">
+        <i class="fas fa-graduation-cap mr-2"></i> Treinamento Contextual (Simulado)
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gray-900 p-4 rounded-lg border border-secondary/50">
+          <div class="flex justify-between items-start mb-3">
+            <span class="inline-block bg-secondary text-xs px-2 py-1 rounded">SUGERIDO</span>
+            <span class="text-xs text-gray-500">15 min</span>
+          </div>
+          <h3 class="font-bold text-lg text-accent mb-2">Diagnóstico de Falhas em Rolamentos</h3>
+          <p class="text-gray-400 text-sm mb-4">Baseado no alerta atual de vibração</p>
+          <button class="w-full mt-2 bg-secondary hover:bg-secondary/80 text-white font-bold py-2 rounded-lg transition">
+            <i class="fas fa-play mr-2"></i> Iniciar Treinamento
+          </button>
+        </div>
+        <div class="md:col-span-2">
+          <h3 class="text-xl font-semibold text-accent mb-4">Seu Progresso</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between bg-gray-900 p-3 rounded-lg">
+              <div>
+                <span class="font-bold text-gray-300">Análise de Termografia</span>
+                <div class="w-48 bg-gray-700 rounded-full h-2 mt-2">
+                  <div class="bg-accent h-2 rounded-full w-[65%]"></div>
+                </div>
+              </div>
+              <span class="text-accent font-bold">65%</span>
+            </div>
+            <div class="flex items-center justify-between bg-gray-900 p-3 rounded-lg">
+              <div>
+                <span class="font-bold text-gray-300">Protocolos PROFINET</span>
+                <div class="w-48 bg-gray-700 rounded-full h-2 mt-2">
+                  <div class="bg-accent h-2 rounded-full w-[90%]"></div>
+                </div>
+              </div>
+              <span class="text-accent font-bold">90%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chat Simulado -->
+    <section aria-labelledby="community-title" class="bg-surface rounded-xl p-6">
+      <h2 id="community-title" class="text-2xl font-bold text-primary mb-6 flex items-center">
+        <i class="fas fa-robot mr-2"></i> Assistente IA Simulado (Offline)
+      </h2>
+      <div class="bg-gray-900 p-4 rounded-lg h-64 flex flex-col">
+        <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2 mb-3 text-sm">
+          <div class="text-gray-300">Olá! Sou o assistente Duoeletro IA. Como posso ajudar na manutenção?</div>
+        </div>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Ex: ‘O que fazer com vibração alta?’"
+            class="flex-1 bg-gray-800 border border-gray-700 rounded-lg p-2 text-white placeholder-gray-500"
+          />
+          <button id="chat-send" class="bg-primary hover:bg-blue-600 px-3 rounded-lg">
+            <i class="fas fa-paper-plane text-white"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // === Simulador de Health Score ===
+    const vibSlider = document.getElementById('vib-slider');
+    const tempSlider = document.getElementById('temp-slider');
+    const powerSlider = document.getElementById('power-slider');
+    const vibValue = document.getElementById('vib-value');
+    const tempValue = document.getElementById('temp-value');
+    const powerValue = document.getElementById('power-value');
+    const healthDisplay = document.getElementById('health-score-display');
+    const failureProb = document.getElementById('failure-prob');
+    const failureBar = document.getElementById('failure-bar');
+    const criticalPart = document.getElementById('critical-part');
+    const machineAnimation = document.getElementById('machine-animation');
+    const twinStatus = document.getElementById('twin-status');
+
+    function updateSimulation() {
+      const vib = parseFloat(vibSlider.value);
+      const temp = parseInt(tempSlider.value);
+      const power = parseInt(powerSlider.value);
+
+      vibValue.textContent = `${vib} mm/s`;
+      tempValue.textContent = `${temp}°C`;
+      powerValue.textContent = `+${power}%`;
+
+      // Cálculo simplificado de health score
+      let score = 100;
+      if (vib > 4.5) score -= (vib - 4.5) * 8;
+      if (temp > 80) score -= (temp - 80) * 1.5;
+      if (power > 10) score -= (power - 10) * 2;
+      score = Math.max(0, Math.min(100, Math.round(score)));
+
+      healthDisplay.textContent = `${score}%`;
+      healthDisplay.style.setProperty('--value', score);
+
+      // Probabilidade de falha
+      let prob = 100 - score;
+      if (prob < 5) prob = 2;
+      failureProb.textContent = `${prob}%`;
+      failureBar.style.width = `${prob}%`;
+
+      // Componente crítico dinâmico
+      if (vib > 6) {
+        criticalPart.textContent = "Rolamento do Motor";
+        machineAnimation.className = "w-16 h-16 bg-red-600 rounded-full animate-pulse";
+        twinStatus.textContent = "⚠️ Vibração crítica!";
+      } else if (temp > 90) {
+        criticalPart.textContent = "Enrolamento do Estator";
+        machineAnimation.className = "w-16 h-16 bg-orange-500 rounded-full animate-pulse";
+        twinStatus.textContent = "🔥 Temperatura elevada!";
+      } else {
+        criticalPart.textContent = "Operação Normal";
+        machineAnimation.className = "w-16 h-16 bg-green-500 rounded-full animate-pulse";
+        twinStatus.textContent = "✅ Operando normalmente";
+      }
+    }
+
+    vibSlider.addEventListener('input', updateSimulation);
+    tempSlider.addEventListener('input', updateSimulation);
+    powerSlider.addEventListener('input', updateSimulation);
+
+    // === Simular novo alerta ===
+    const alertsContainer = document.getElementById('alerts-container');
+    const simulateBtn = document.getElementById('simulate-alert');
+    const types = [
+      { type: "CRÍTICO", color: "text-red-400", border: "border-red-500/50", msg: "Vibração excessiva: 8.2 mm/s" },
+      { type: "ATENÇÃO", color: "text-yellow-400", border: "border-yellow-500/50", msg: "Temperatura do óleo: 92°C" },
+      { type: "INFORMAÇÃO", color: "text-blue-400", border: "border-blue-500/50", msg: "MTBF atualizado para 1.100h" }
+    ];
+
+    simulateBtn.addEventListener('click', () => {
+      const alert = types[Math.floor(Math.random() * types.length)];
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const el = document.createElement('div');
+      el.className = `bg-gray-900 p-3 rounded-lg border ${alert.border}`;
+      el.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold ${alert.color}">${alert.type}</span>
+          <span class="text-xs text-gray-500">${now}</span>
+        </div>
+        <p class="mt-2 text-gray-300">${alert.msg}</p>
+      `;
+      alertsContainer.prepend(el);
+    });
+
+    // === Chat Simulado ===
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatMessages = document.getElementById('chat-messages');
+
+    const responses = {
+      vibração: "Verifique o alinhamento do eixo e o estado dos rolamentos. Vibração >6 mm/s exige parada imediata.",
+      temperatura: "Temperaturas acima de 90°C indicam sobrecarga ou falha na ventilação. Monitore o isolamento.",
+      consumo: "Aumento de consumo pode indicar desgaste mecânico ou problema no inversor de frequência.",
+      falha: "Recomendamos análise de envelope de vibração e termografia elétrica.",
+      default: "Baseado nos dados, sugiro revisar rolamentos e verificar alinhamento. Deseja iniciar o treinamento?"
+    };
+
+    function addMessage(text, isUser = false) {
+      const msg = document.createElement('div');
+      msg.className = isUser ? 'text-right text-blue-300' : 'text-gray-300';
+      msg.textContent = text;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatSend.addEventListener('click', () => {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      addMessage(text, true);
+      chatInput.value = '';
+
+      let reply = responses.default;
+      if (text.toLowerCase().includes('vibração') || text.includes('vibra')) reply = responses.vibração;
+      else if (text.toLowerCase().includes('temperatura') || text.includes('temp')) reply = responses.temperatura;
+      else if (text.toLowerCase().includes('consumo') || text.includes('energia')) reply = responses.consumo;
+      else if (text.toLowerCase().includes('falha')) reply = responses.falha;
+
+      setTimeout(() => addMessage(reply), 500);
+    });
+
+    chatInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') chatSend.click();
+    });
+
+    // === Dark Mode Toggle ===
+    const toggle = document.getElementById('theme-toggle');
+    const storedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+    updateToggleIcon(storedTheme);
+
+    toggle.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      const newTheme = isDark ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+      updateToggleIcon(newTheme);
+    });
+
+    function updateToggleIcon(theme) {
+      toggle.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
+
+    // Inicializa simulação
+    updateSimulation();
+  </script>
+  <!-- Modal de Treinamento Contextual -->
+<div id="training-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+  <div class="bg-surface rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <!-- Header -->
+    <div class="bg-gray-900 px-6 py-4 flex justify-between items-center border-b border-gray-700">
+      <h3 class="text-lg font-bold text-accent">Diagnóstico de Falhas em Rolamentos</h3>
+      <button id="close-training" class="text-gray-400 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div class="px-6 pt-4">
+      <div class="flex justify-between text-sm text-gray-400 mb-1">
+        <span>Aula 1/3</span>
+        <span>15 min</span>
+      </div>
+      <div class="w-full bg-gray-700 rounded-full h-2">
+        <div id="training-progress" class="bg-accent h-2 rounded-full w-[33%]"></div>
+      </div>
+    </div>
+
+    <!-- Conteúdo -->
+    <div id="training-content" class="flex-1 overflow-y-auto p-6 space-y-4 text-gray-300">
+      <!-- Aula 1 -->
+      <div id="lesson-1" class="lesson-content">
+        <h4 class="font-bold text-white mb-2 flex items-center">
+          <i class="fas fa-video text-red-500 mr-2"></i> Vídeo: Introdução à Análise de Vibração
+        </h4>
+        <p class="mb-3">Neste vídeo, você aprenderá como identificar padrões de vibração típicos em rolamentos com defeito.</p>
+        <div class="bg-black rounded-lg h-48 flex items-center justify-center border border-gray-700">
+          <i class="fas fa-play-circle text-red-500 text-4xl"></i>
+        </div>
+        <p class="mt-3 italic text-sm">⚠️ Este é um simulador. Em produção, este player carregaria um vídeo real.</p>
+      </div>
+
+      <!-- Aula 2 (invisível inicialmente) -->
+      <div id="lesson-2" class="lesson-content hidden">
+        <h4 class="font-bold text-white mb-2 flex items-center">
+          <i class="fas fa-tasks text-blue-500 mr-2"></i> Exercício Prático: Identifique a Frequência
+        </h4>
+        <p class="mb-3">Observe o gráfico abaixo e selecione a frequência característica de falha no rolamento externo:</p>
+        <div class="bg-gray-900 p-4 rounded-lg">
+          <div class="h-32 bg-gradient-to-r from-blue-900 to-indigo-900 rounded flex items-center justify-center text-white">
+            📊 Gráfico de espectro de vibração (simulado)
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <button class="training-option bg-gray-800 hover:bg-blue-900 p-2 rounded text-sm">120 Hz</button>
+            <button class="training-option bg-gray-800 hover:bg-blue-900 p-2 rounded text-sm">180 Hz</button>
+            <button class="training-option bg-gray-800 hover:bg-green-700 p-2 rounded text-sm border-2 border-green-500">210 Hz ✓</button>
+            <button class="training-option bg-gray-800 hover:bg-blue-900 p-2 rounded text-sm">250 Hz</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aula 3 -->
+      <div id="lesson-3" class="lesson-content hidden">
+        <h4 class="font-bold text-white mb-2">
+          <i class="fas fa-clipboard-check text-green-500 mr-2"></i> Conclusão & Checklist
+        </h4>
+        <p class="mb-3">Você completou o treinamento! Aqui está seu checklist de ação:</p>
+        <ul class="space-y-2 text-sm">
+          <li class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
+            <span>Verificar alinhamento do eixo</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
+            <span>Medir temperatura no mancal</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 mt-0.5 mr-2"></i>
+            <span>Substituir rolamento em até 48h</span>
+          </li>
+        </ul>
+        <button id="finish-training" class="mt-4 w-full bg-accent hover:bg-emerald-600 text-white font-bold py-2 rounded-lg">
+          Finalizar e Gerar Relatório
+        </button>
+      </div>
+    </div>
+
+    <!-- Controles -->
+    <div id="training-controls" class="px-6 py-4 bg-gray-900 flex justify-between border-t border-gray-700">
+      <button id="prev-lesson" class="text-gray-400 hover:text-white disabled:opacity-30" disabled>
+        <i class="fas fa-arrow-left mr-1"></i> Anterior
+      </button>
+      <button id="next-lesson" class="text-secondary hover:text-blue-400">
+        Próximo <i class="fas fa-arrow-right ml-1"></i>
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  // Treinamento Contextual Simulado
+  const trainingModal = document.getElementById('training-modal');
+  const openBtns = document.querySelectorAll('button:contains("Iniciar Treinamento")');
+  const closeBtn = document.getElementById('close-training');
+  const nextBtn = document.getElementById('next-lesson');
+  const prevBtn = document.getElementById('prev-lesson');
+  const finishBtn = document.getElementById('finish-training');
+  const lessons = [
+    document.getElementById('lesson-1'),
+    document.getElementById('lesson-2'),
+    document.getElementById('lesson-3')
+  ];
+  const progress = document.getElementById('training-progress');
+  let currentLesson = 0;
+
+  function showLesson(index) {
+    lessons.forEach((el, i) => {
+      el.classList.toggle('hidden', i !== index);
+    });
+    currentLesson = index;
+    progress.style.width = `${(index + 1) * 33.33}%`;
+    
+    // Atualiza botões
+    prevBtn.disabled = index === 0;
+    nextBtn.innerHTML = index === lessons.length - 1 
+      ? 'Concluir <i class="fas fa-check ml-1"></i>' 
+      : 'Próximo <i class="fas fa-arrow-right ml-1"></i>';
+  }
+
+  function openTraining() {
+    trainingModal.classList.remove('hidden');
+    showLesson(0);
+    document.body.classList.add('overflow-hidden');
+  }
+
+  function closeTraining() {
+    trainingModal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  // Encontra o botão "Iniciar Treinamento" pelo texto (fallback seguro)
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.textContent.trim().includes('Iniciar Treinamento')) {
+      btn.addEventListener('click', openTraining);
+    }
+  });
+
+  closeBtn.addEventListener('click', closeTraining);
+  nextBtn.addEventListener('click', () => {
+    if (currentLesson < lessons.length - 1) {
+      showLesson(currentLesson + 1);
+    } else {
+      closeTraining();
+      alert('✅ Treinamento concluído! Um relatório foi gerado e está disponível na aba "Meus Relatórios".');
+    }
+  });
+
+  prevBtn.addEventListener('click', () => {
+    if (currentLesson > 0) showLesson(currentLesson - 1);
+  });
+
+  // Exercício interativo
+  document.querySelectorAll('.training-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.classList.contains('border-green-500')) {
+        alert('✔️ Correto! A frequência característica do rolamento externo é 210 Hz.');
+      } else {
+        this.classList.add('border-red-500', 'animate-pulse');
+        setTimeout(() => this.classList.remove('border-red-500', 'animate-pulse'), 1000);
+      }
+    });
+  });
+</script>
+</body>
+</html>

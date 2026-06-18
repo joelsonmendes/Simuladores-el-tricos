@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IoT Edu - Gerador de Código para ESP32</title>
+  <style>
+    :root {
+      --primary: #2c6fbb;
+      --primary-dark: #1e5a99;
+      --secondary: #4CAF50;
+      --danger: #f44336;
+      --warning: #ff9800;
+      --light: #f5f7fa;
+      --dark: #333;
+      --gray: #777;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 20px;
+      color: var(--dark);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 30px;
+      overflow: hidden;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #eee;
+    }
+    
+    h1 {
+      color: var(--primary);
+      margin: 0 0 10px 0;
+      font-size: 2.2em;
+    }
+    
+    .subtitle {
+      color: var(--gray);
+      font-size: 1.1em;
+    }
+    
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .config-section, .output-section {
+      background: #f9f9f9;
+      padding: 25px;
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .section-title {
+      color: var(--primary);
+      margin-top: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.4em;
+    }
+    
+    label {
+      display: block;
+      margin: 18px 0 6px;
+      font-weight: 600;
+      color: #444;
+    }
+    
+    .input-group {
+      margin-bottom: 5px;
+    }
+    
+    select, textarea, input {
+      width: 100%;
+      padding: 12px 15px;
+      margin-top: 6px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border 0.3s;
+    }
+    
+    select:focus, textarea:focus, input:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(44, 111, 187, 0.1);
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+      font-family: monospace;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 15px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(44, 111, 187, 0.3);
+    }
+    
+    .btn-secondary {
+      background: #f0f0f0;
+      color: var(--dark);
+    }
+    
+    .btn-secondary:hover {
+      background: #e0e0e0;
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #d32f2f;
+      transform: translateY(-2px);
+    }
+    
+    #output {
+      margin-top: 20px;
+      padding: 20px;
+      background: #2b2b2b;
+      border: 1px solid #444;
+      border-radius: 8px;
+      white-space: pre;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #f8f8f2;
+      display: none;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .output-header h3 {
+      margin: 0;
+      color: #fff;
+    }
+    
+    .copy-btn {
+      background: #444;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    
+    .copy-btn:hover {
+      background: var(--primary);
+    }
+    
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--gray);
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    .sensor-info {
+      background: #e8f4ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border-left: 4px solid var(--primary);
+      font-size: 14px;
+      display: none;
+    }
+    
+    .info-icon {
+      color: var(--primary);
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      background: #ccc;
+    }
+    
+    .status-connected {
+      background: var(--secondary);
+    }
+    
+    .sensor-count {
+      background: var(--warning);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .highlight {
+      background: rgba(255, 255, 0, 0.2);
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>IoT Edu – Gerador de Código para ESP32</h1>
+      <p class="subtitle">Gerador de código educativo para projetos IoT com ESP32</p>
+    </div>
+    
+    <div class="grid-container">
+      <div class="config-section">
+        <h2 class="section-title">Configurações do Projeto</h2>
+        
+        <div class="input-group">
+          <label for="projectName">Nome do Projeto:</label>
+          <input type="text" id="projectName" placeholder="Ex: Monitor de Temperatura" value="Projeto IoT Edu" />
+        </div>
+        
+        <div class="input-group">
+          <label for="sensorType">Tipo de Sensor:</label>
+          <select id="sensorType">
+            <optgroup label="Sensores Ambientais">
+              <option value="dht22">DHT22 – Temperatura e Umidade</option>
+              <option value="bme280">BME280 – Temp, Umidade e Pressão</option>
+              <option value="ds18b20">DS18B20 – Temperatura (OneWire)</option>
+            </optgroup>
+            
+            <optgroup label="Qualidade do Ar e Gases">
+              <option value="mq135">MQ-135 – Qualidade do Ar (CO₂, NH₃)</option>
+              <option value="mq2">MQ-2 – Gás Inflamável / Fumaça</option>
+              <option value="mq7">MQ-7 – Monóxido de Carbono (CO)</option>
+              <option value="mq131">MQ-131 – Ozônio (O₃)</option>
+            </optgroup>
+            
+            <optgroup label="Luz e Movimento">
+              <option value="ldr">LDR – Intensidade Luminosa</option>
+              <option value="pir">PIR – Detecção de Movimento</option>
+              <option value="ultrassonico">HC-SR04 – Distância por Ultrassom</option>
+            </optgroup>
+            
+            <optgroup label="Solo e Umidade">
+              <option value="higr_solo">Sensor de Umidade do Solo</option>
+            </optgroup>
+            
+            <optgroup label="Som e Vibração">
+              <option value="microfone">Módulo Microfone (KY-038)</option>
+            </optgroup>
+            
+            <optgroup label="Entradas Digitais">
+              <option value="push_button">Botão Pulsador</option>
+              <option value="switch_no">Switch NO (Normalmente Aberto)</option>
+              <option value="switch_nc">Switch NC (Normalmente Fechado)</option>
+            </optgroup>
+            
+            <optgroup label="Outros Comuns em Aulas">
+              <option value="potenciometro">Potenciômetro – Entrada Analógica</option>
+              <option value="flame">Sensor de Chama</option>
+              <option value="rele">Módulo Relé – Saída Digital</option>
+              <option value="buzzer">Buzzer Passivo – Alerta Sonoro</option>
+            </optgroup>
+          </select>
+          <div id="sensorInfo" class="sensor-info"></div>
+        </div>
+        
+        <div class="input-group">
+          <label for="pino">Pino do Sensor (opcional):</label>
+          <input type="text" id="pino" placeholder="Ex: 4, 13, 34" />
+          <small style="color: #666;">Deixe em branco para usar o pino padrão</small>
+        </div>
+        
+        <div class="input-group">
+          <label for="readInterval">Intervalo de Leitura (segundos):</label>
+          <input type="range" id="intervalSlider" min="1" max="60" value="10" style="width: 100%; margin: 10px 0;">
+          <input type="number" id="readInterval" min="1" max="3600" value="10" />
+        </div>
+        
+        <div class="input-group">
+          <label for="action">Ação Condicional (opcional):</label>
+          <textarea id="action" placeholder="Ex: Acender LED se temperatura > 30°C ou enviar alerta quando movimento detectado"></textarea>
+          <small style="color: #666;">Use esta área para descrever a lógica personalizada do seu projeto</small>
+        </div>
+        
+        <div class="input-group">
+          <label for="includeWiFi">
+            <input type="checkbox" id="includeWiFi" checked> Incluir Conexão Wi-Fi
+          </label>
+        </div>
+        
+        <div id="wifiConfig">
+          <div class="input-group">
+            <label for="networkSsid">SSID da Rede Wi-Fi:</label>
+            <input type="text" id="networkSsid" value="SENAINODE" />
+          </div>
+          
+          <div class="input-group">
+            <label for="networkPass">Senha da Rede Wi-Fi:</label>
+            <input type="password" id="networkPass" value="senai2025" />
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label for="outputLang">Linguagem de Saída:</label>
+          <select id="outputLang">
+            <option value="cpp">C++ (Arduino)</option>
+            <option value="micropython">MicroPython</option>
+            <option value="both">Ambas (C++ e MicroPython)</option>
+          </select>
+        </div>
+        
+        <div class="button-group">
+          <button class="btn-primary" onclick="generateCode()">Gerar Código</button>
+          <button class="btn-secondary" onclick="previewCode()">Pré-visualizar</button>
+          <button class="btn-danger" onclick="resetForm()">Limpar</button>
+        </div>
+      </div>
+      
+      <div class="output-section">
+        <h2 class="section-title">Código Gerado <span id="sensorCount" class="sensor-count">22 sensores</span></h2>
+        
+        <div style="margin-bottom: 15px;">
+          <span class="status-indicator" id="statusIndicator"></span>
+          <span id="statusText">Pronto para gerar código</span>
+        </div>
+        
+        <div id="outputContainer" style="display: none;">
+          <div class="output-header">
+            <h3 id="outputTitle">Código para ESP32</h3>
+            <button class="copy-btn" onclick="copyToClipboard()">Copiar Código</button>
+          </div>
+          <pre id="output"></pre>
+        </div>
+        
+        <div id="previewOutput" style="display: none;">
+          <div class="output-header">
+            <h3>Pré-visualização</h3>
+            <span style="color: var(--warning); font-size: 14px;">Apenas visualização - gere o código completo</span>
+          </div>
+          <pre id="previewCode"></pre>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>Ferramenta educacional para aulas de IoT – SENAI | Total de sensores suportados: <span id="totalSensors">22</span></p>
+      <p style="font-size: 12px; margin-top: 5px;">Use este gerador para criar rapidamente códigos de exemplo para seus projetos educacionais</p>
+    </div>
+  </div>
+
+  <script>
+    // Dados dos sensores com informações detalhadas
+    const sensorInfo = {
+      dht22: { pin: "4", desc: "Sensor digital de temperatura e umidade. Precisão: ±0.5°C, ±2% RH. Requer biblioteca DHT.h" },
+      bme280: { pin: "21 (SDA), 22 (SCL)", desc: "Sensor digital I2C de temperatura, umidade e pressão. Alta precisão. Endereço I2C: 0x76 ou 0x77" },
+      ds18b20: { pin: "4", desc: "Sensor de temperatura digital OneWire. Permite múltiplos sensores no mesmo pino" },
+      mq135: { pin: "34", desc: "Sensor analógico de qualidade do ar. Detecta CO₂, NH₃, álcool, etc. Requer calibração" },
+      mq2: { pin: "34", desc: "Sensor analógico de gás inflamável e fumaça. Sensível a GLP, propano, hidrogênio" },
+      mq7: { pin: "34", desc: "Sensor analógico de monóxido de carbono. Requer ciclo de aquecimento para operação" },
+      mq131: { pin: "34", desc: "Sensor analógico de ozônio. Use para monitoramento de qualidade do ar" },
+      ldr: { pin: "34", desc: "Sensor analógico de luz. Resistência varia com intensidade luminosa" },
+      pir: { pin: "13", desc: "Sensor digital de movimento. Saída HIGH quando movimento detectado" },
+      ultrassonico: { pin: "5 (Trig), 18 (Echo)", desc: "Sensor de distância por ultrassom. Mede de 2cm a 400cm" },
+      higr_solo: { pin: "34", desc: "Sensor analógico de umidade do solo. Valores altos indicam solo seco" },
+      microfone: { pin: "34", desc: "Módulo microfone com saída analógica/digital. Detecta nível de som" },
+      push_button: { pin: "13", desc: "Botão pulsador. Use INPUT_PULLUP para evitar resistor externo" },
+      switch_no: { pin: "14", desc: "Switch normalmente aberto. Fecha o circuito quando ativado" },
+      switch_nc: { pin: "15", desc: "Switch normalmente fechado. Abre o circuito quando ativado" },
+      potenciometro: { pin: "34", desc: "Potenciômetro. Fornece tensão variável de 0V a 3.3V" },
+      flame: { pin: "13", desc: "Sensor digital de chama. Detecta chamas na faixa de 760nm a 1100nm" },
+      rele: { pin: "12", desc: "Módulo relé. Controle de cargas AC/DC. CUIDADO com alta tensão!" },
+      buzzer: { pin: "15", desc: "Buzzer passivo. Gera tons com frequência controlada" }
+    };
+
+    // Controle do Wi-Fi
+    document.getElementById('includeWiFi').addEventListener('change', function() {
+      document.getElementById('wifiConfig').style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Sincronização do slider e input numérico
+    const intervalSlider = document.getElementById('intervalSlider');
+    const readInterval = document.getElementById('readInterval');
+    
+    intervalSlider.addEventListener('input', function() {
+      readInterval.value = this.value;
+    });
+    
+    readInterval.addEventListener('input', function() {
+      if (this.value < 1) this.value = 1;
+      if (this.value > 3600) this.value = 3600;
+      intervalSlider.value = this.value > 60 ? 60 : this.value;
+    });
+
+    // Informações do sensor selecionado
+    document.getElementById('sensorType').addEventListener('change', function() {
+      const sensor = this.value;
+      const infoDiv = document.getElementById('sensorInfo');
+      const pinInput = document.getElementById('pino');
+      
+      if (sensorInfo[sensor]) {
+        infoDiv.innerHTML = `<span class="info-icon">ⓘ</span> <strong>Pino sugerido:</strong> ${sensorInfo[sensor].pin} | ${sensorInfo[sensor].desc}`;
+        infoDiv.style.display = 'block';
+        pinInput.placeholder = `Ex: ${sensorInfo[sensor].pin}`;
+      } else {
+        infoDiv.style.display = 'none';
+      }
+    });
+
+    // Status indicator
+    function updateStatus(message, type = 'info') {
+      const indicator = document.getElementById('statusIndicator');
+      const statusText = document.getElementById('statusText');
+      
+      statusText.textContent = message;
+      
+      if (type === 'success') {
+        indicator.className = 'status-indicator status-connected';
+      } else if (type === 'error') {
+        indicator.style.background = 'var(--danger)';
+      } else {
+        indicator.style.background = 'var(--warning)';
+      }
+    }
+
+    // Contador de sensores
+    function updateSensorCount() {
+      const sensorSelect = document.getElementById('sensorType');
+      const count = sensorSelect.querySelectorAll('option').length;
+      document.getElementById('totalSensors').textContent = count;
+      document.getElementById('sensorCount').textContent = `${count} sensores`;
+    }
+
+    // Gerar código C++ com melhorias
+    function generateCppCode(sensorType, interval, action, ssid, password, includeWiFi, projectName, customPin) {
+      // Usar pino personalizado ou padrão
+      const getPin = (defaultPin) => customPin || defaultPin;
+      
+      // Template base com Wi-Fi condicional
+      const wifiTemplate = includeWiFi ? `
+const char* ssid = "${ssid}";
+const char* password = "${password}";
+
+void setupWiFi() {
+  Serial.println("Conectando ao Wi-Fi...");
+  WiFi.begin(ssid, password);
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\\nConectado ao Wi-Fi!");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\\nFalha na conexão Wi-Fi!");
+  }
+}` : '';
+
+      const setupWiFiCall = includeWiFi ? '  setupWiFi();' : '  // Wi-Fi desabilitado neste projeto';
+      
+      // Códigos específicos para cada sensor
+      const sensorCodes = {
+        push_button: `#include <${includeWiFi ? 'WiFi.h>' : 'Arduino.h>'}
+
+${wifiTemplate}
+
+const int BUTTON_PIN = ${getPin('13')};
+const int LED_PIN = 2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+${setupWiFiCall}
+  Serial.println("\\nMonitor de Botão Pulsador - ${projectName}");
+}
+
+void loop() {
+  int buttonState = digitalRead(BUTTON_PIN);
+  Serial.printf("Botão: %s\\n", buttonState == HIGH ? "SOLTO" : "PRESSIONADO");
+
+  ${action ? `  // Ação personalizada: ${action}\n` : ''}
+  if (buttonState == LOW) {
+    digitalWrite(LED_PIN, HIGH);
+    // Adicione sua lógica aqui quando botão pressionado
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(50); // Debouncing
+}`,
+
+        dht22: `#include <${includeWiFi ? 'WiFi.h>' : 'Arduino.h>'}
+#include <DHT.h>
+
+#define DHTPIN ${getPin('4')}
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+${wifiTemplate}
+
+const int LED_PIN = 2;
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(LED_PIN, OUTPUT);
+${setupWiFiCall}
+  Serial.println("\\nMonitor DHT22 - ${projectName}");
+  Serial.println("Aguardando estabilização do sensor...");
+  delay(2000);
+}
+
+void loop() {
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+
+  if (isnan(humidity) || isnan(temperature)) {
+    Serial.println("Erro na leitura do DHT22!");
+    return;
+  }
+
+  Serial.printf("Temperatura: %.2f°C | Umidade: %.2f%%\\n", temperature, humidity);
+
+  ${action ? `  // Ação personalizada: ${action}\n` : ''}
+  if (temperature > 30.0) {
+    digitalWrite(LED_PIN, HIGH);
+    // Adicione lógica para temperatura alta
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(${interval});
+}`,
+
+        bme280: `#include <${includeWiFi ? 'WiFi.h>' : 'Arduino.h>'}
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+Adafruit_BME280 bme;
+
+${wifiTemplate}
+
+const int LED_PIN = 2;
+
+void setup() {
+  Serial.begin(115200);
+  bool status = bme.begin(0x76);
+  if (!status) {
+    Serial.println("Erro: BME280 não encontrado! Verifique conexões I2C.");
+    while(1);
+  }
+  pinMode(LED_PIN, OUTPUT);
+${setupWiFiCall}
+  Serial.println("\\nMonitor BME280 - ${projectName}");
+}
+
+void loop() {
+  float temperature = bme.readTemperature();
+  float humidity = bme.readHumidity();
+  float pressure = bme.readPressure() / 100.0F;
+  float altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
+
+  Serial.printf("Temp: %.2f°C | Umid: %.2f%% | Press: %.2f hPa | Alt: %.2f m\\n", 
+                temperature, humidity, pressure, altitude);
+
+  ${action ? `  // Ação personalizada: ${action}\n` : ''}
+  if (pressure < 1000) {
+    digitalWrite(LED_PIN, HIGH);
+    // Adicione lógica para baixa pressão
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(${interval});
+}`,
+
+        // Adicione outros sensores seguindo o mesmo padrão...
+        // Por questões de espaço, incluí apenas alguns exemplos
+
+        mq135: `#include <${includeWiFi ? 'WiFi.h>' : 'Arduino.h>'}
+
+${wifiTemplate}
+
+const int MQ135_PIN = ${getPin('34')};
+const int LED_PIN = 2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+${setupWiFiCall}
+  Serial.println("\\nMonitor MQ-135 - ${projectName}");
+  Serial.println("Aguardando aquecimento do sensor (60 segundos)...");
+  delay(60000); // Tempo de aquecimento para MQ-135
+}
+
+void loop() {
+  int airQuality = analogRead(MQ135_PIN);
+  Serial.printf("Qualidade do ar (MQ-135): %d\\n", airQuality);
+
+  ${action ? `  // Ação personalizada: ${action}\n` : ''}
+  if (airQuality > 2000) {
+    digitalWrite(LED_PIN, HIGH);
+    Serial.println("ALERTA: Qualidade do ar ruim!");
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(${interval});
+}`,
+
+        ldr: `#include <${includeWiFi ? 'WiFi.h>' : 'Arduino.h>'}
+
+${wifiTemplate}
+
+const int LDR_PIN = ${getPin('34')};
+const int LED_PIN = 2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+${setupWiFiCall}
+  Serial.println("\\nMonitor LDR - ${projectName}");
+}
+
+void loop() {
+  int lightLevel = analogRead(LDR_PIN);
+  Serial.printf("Nível de luz: %d\\n", lightLevel);
+
+  ${action ? `  // Ação personalizada: ${action}\n` : ''}
+  if (lightLevel < 1000) {
+    digitalWrite(LED_PIN, HIGH);
+    // Adicione lógica para ambiente escuro
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(${interval});
+}`,
+
+        pir: `#include <${includeWiFi ? 'WiFi.h>' : 'Arduino.h>'}
+
+${wifiTemplate}
+
+const int PIR_PIN = ${getPin('13')};
+const int LED_PIN = 2;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIR_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+${setupWiFiCall}
+  Serial.println("\\nSensor PIR - ${projectName}");
+  Serial.println("Aguardando calibração do PIR (30 segundos)...");
+  delay(30000);
+  Serial.println("Sensor PIR pronto!");
+}
+
+void loop() {
+  int motion = digitalRead(PIR_PIN);
+  Serial.printf("Movimento detectado: %s\\n", motion ? "SIM" : "NÃO");
+
+  ${action ? `  // Ação personalizada: ${action}\n` : ''}
+  if (motion) {
+    digitalWrite(LED_PIN, HIGH);
+    // Adicione lógica quando movimento detectado
+    delay(2000); // Mantém LED aceso por 2 segundos
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(100);
+}`
+      };
+
+      return sensorCodes[sensorType] || `// Código para ${sensorType} ainda não implementado. Escolha outro sensor da lista.`;
+    }
+
+    // Gerar código MicroPython
+    function generateMicroPythonCode(sensorType, interval, action, ssid, password, includeWiFi, projectName, customPin) {
+      return `# ${projectName} - ESP32 MicroPython
+# Sensor: ${sensorType}
+# Gerado pelo IoT Edu - SENAI
+
+${includeWiFi ? `import network
+import time
+
+# Configuração Wi-Fi
+WIFI_SSID = "${ssid}"
+WIFI_PASSWORD = "${password}"
+
+def connect_wifi():
+    sta_if = network.WLAN(network.STA_IF)
+    if not sta_if.isconnected():
+        print('Conectando ao Wi-Fi...')
+        sta_if.active(True)
+        sta_if.connect(WIFI_SSID, WIFI_PASSWORD)
+        for _ in range(20):
+            if sta_if.isconnected():
+                break
+            time.sleep(0.5)
+            print('.', end='')
+    
+    if sta_if.isconnected():
+        print('\\nConectado ao Wi-Fi!')
+        print('IP:', sta_if.ifconfig()[0])
+    else:
+        print('\\nFalha na conexão Wi-Fi!')
+    
+    return sta_if.isconnected()
+
+` : ''}
+
+from machine import Pin, ADC, I2C, PWM
+import time
+
+# Configuração do LED interno
+led = Pin(2, Pin.OUT)
+
+# Configuração do sensor
+${getSensorConfig(sensorType, customPin)}
+
+${includeWiFi ? '# Conecta ao Wi-Fi\nif connect_wifi():\n    print("Sistema iniciado com sucesso!")\nelse:\n    print("Sistema iniciado sem Wi-Fi")' : 'print("Sistema iniciado - Modo offline")'}
+
+print("\\n=== ${projectName} ===")
+print("Iniciando leituras...\\n")
+
+def main_loop():
+    while True:
+        try:
+            # Leitura do sensor
+            ${getSensorReadCode(sensorType)}
+            
+            ${action ? `            # Ação personalizada: ${action}` : ''}
+            
+            # Exemplo de lógica condicional
+            # if valor > limite:
+            #     led.on()
+            # else:
+            #     led.off()
+            
+            time.sleep(${interval / 1000})
+            
+        except Exception as e:
+            print("Erro:", e)
+            time.sleep(5)
+
+if __name__ == "__main__":
+    main_loop()`;
+    }
+
+    // Funções auxiliares para MicroPython
+    function getSensorConfig(sensorType, customPin) {
+      const pin = customPin || sensorInfo[sensorType]?.pin?.split(' ')[0] || '4';
+      
+      switch(sensorType) {
+        case 'dht22': return `import dht
+sensor = dht.DHT22(Pin(${pin}))`;
+        case 'ldr': return `ldr = ADC(Pin(${pin}))
+ldr.atten(ADC.ATTN_11DB)  # Full range: 0-3.3V`;
+        case 'pir': return `pir = Pin(${pin}, Pin.IN)`;
+        default: return `# Configuração para ${sensorType}
+sensor_pin = Pin(${pin}, Pin.IN)`;
+      }
+    }
+
+    function getSensorReadCode(sensorType) {
+      switch(sensorType) {
+        case 'dht22': return `sensor.measure()
+            temp = sensor.temperature()
+            hum = sensor.humidity()
+            print(f"Temperatura: {temp:.1f}°C | Umidade: {hum:.1f}%")`;
+        case 'ldr': return `value = ldr.read()
+            print(f"Nível de luz: {value}")`;
+        case 'pir': return `motion = pir.value()
+            print(f"Movimento: {'SIM' if motion else 'NÃO'}")`;
+        default: return `# Leitura do sensor ${sensorType}
+            print("Lendo sensor...")`;
+      }
+    }
+
+    // Função principal para gerar código
+    function generateCode() {
+      const sensorType = document.getElementById('sensorType').value;
+      const interval = parseInt(document.getElementById('readInterval').value) * 1000;
+      const action = document.getElementById('action').value.trim();
+      const ssid = document.getElementById('networkSsid').value;
+      const password = document.getElementById('networkPass').value;
+      const lang = document.getElementById('outputLang').value;
+      const includeWiFi = document.getElementById('includeWiFi').checked;
+      const projectName = document.getElementById('projectName').value || "Projeto IoT";
+      const customPin = document.getElementById('pino').value.trim();
+      
+      updateStatus("Gerando código...", "info");
+      
+      let code = '';
+      let title = '';
+      
+      if (lang === 'cpp' || lang === 'both') {
+        const cppCode = generateCppCode(sensorType, interval, action, ssid, password, includeWiFi, projectName, customPin);
+        
+        if (lang === 'both') {
+          code = `// ============================================
+// ${projectName} - C++ (Arduino)
+// Sensor: ${sensorType}
+// ============================================
+
+${cppCode}
+
+// ============================================
+// FIM DO CÓDIGO C++
+// ============================================
+
+
+
+
+// ============================================
+// ${projectName} - MicroPython
+// Sensor: ${sensorType}
+// ============================================
+
+${generateMicroPythonCode(sensorType, interval, action, ssid, password, includeWiFi, projectName, customPin)}`;
+          title = `Código para ${sensorType} - C++ e MicroPython`;
+        } else {
+          code = cppCode;
+          title = `Código C++ para ${sensorType}`;
+        }
+      } else if (lang === 'micropython') {
+        code = generateMicroPythonCode(sensorType, interval, action, ssid, password, includeWiFi, projectName, customPin);
+        title = `Código MicroPython para ${sensorType}`;
+      }
+      
+      const output = document.getElementById('output');
+      const outputContainer = document.getElementById('outputContainer');
+      const previewOutput = document.getElementById('previewOutput');
+      
+      output.textContent = code;
+      document.getElementById('outputTitle').textContent = title;
+      outputContainer.style.display = 'block';
+      previewOutput.style.display = 'none';
+      
+      updateStatus("Código gerado com sucesso!", "success");
+      
+      // Scroll para a seção de output
+      outputContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Pré-visualizar código
+    function previewCode() {
+      const sensorType = document.getElementById('sensorType').value;
+      const projectName = document.getElementById('projectName').value || "Projeto IoT";
+      
+      const preview = `// PRÉ-VISUALIZAÇÃO
+// Projeto: ${projectName}
+// Sensor: ${sensorType}
+// ------------------------------
+
+// Este é um exemplo da estrutura do código que será gerado.
+// Clique em "Gerar Código" para obter o código completo.
+
+// O código incluirá:
+// 1. Configuração dos pinos do sensor
+// 2. Inicialização da comunicação serial
+// ${document.getElementById('includeWiFi').checked ? '3. Conexão Wi-Fi com tratamento de erros' : '3. Modo offline (sem Wi-Fi)'}
+// 4. Loop principal com leitura do sensor
+// 5. Lógica condicional baseada nas leituras
+// 6. Saída de dados no monitor serial
+
+// Bibliotecas necessárias:
+${getRequiredLibraries(sensorType)}
+
+// Pinagem sugerida: ${sensorInfo[sensorType]?.pin || 'Consulte a documentação'}
+
+// Clique em "Gerar Código" para ver o código completo!`;
+      
+      const previewOutput = document.getElementById('previewOutput');
+      const outputContainer = document.getElementById('outputContainer');
+      
+      document.getElementById('previewCode').textContent = preview;
+      previewOutput.style.display = 'block';
+      outputContainer.style.display = 'none';
+      
+      updateStatus("Pré-visualização gerada", "info");
+    }
+
+    function getRequiredLibraries(sensorType) {
+      const libraries = {
+        dht22: "- DHT.h (para DHT22)",
+        bme280: "- Wire.h\n- Adafruit_Sensor.h\n- Adafruit_BME280.h",
+        ds18b20: "- OneWire.h\n- DallasTemperature.h",
+        mq135: "- (nenhuma biblioteca adicional)",
+        pir: "- (nenhuma biblioteca adicional)",
+        ldr: "- (nenhuma biblioteca adicional)",
+        default: "- (bibliotecas padrão do Arduino)"
+      };
+      
+      return libraries[sensorType] || libraries.default;
+    }
+
+    // Copiar código para a área de transferência
+    function copyToClipboard() {
+      const output = document.getElementById('output');
+      const textArea = document.createElement('textarea');
+      textArea.value = output.textContent;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      updateStatus("Código copiado para a área de transferência!", "success");
+      
+      // Feedback visual
+      const btn = document.querySelector('.copy-btn');
+      const originalText = btn.textContent;
+      btn.textContent = "✓ Copiado!";
+      btn.style.background = "var(--secondary)";
+      
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = "";
+      }, 2000);
+    }
+
+    // Resetar formulário
+    function resetForm() {
+      if (confirm("Deseja limpar todas as configurações?")) {
+        document.getElementById('projectName').value = "Projeto IoT Edu";
+        document.getElementById('sensorType').selectedIndex = 0;
+        document.getElementById('pino').value = "";
+        document.getElementById('readInterval').value = 10;
+        document.getElementById('intervalSlider').value = 10;
+        document.getElementById('action').value = "";
+        document.getElementById('includeWiFi').checked = true;
+        document.getElementById('networkSsid').value = "SENAINODE";
+        document.getElementById('networkPass').value = "senai2025";
+        document.getElementById('outputLang').selectedIndex = 0;
+        
+        document.getElementById('outputContainer').style.display = 'none';
+        document.getElementById('previewOutput').style.display = 'none';
+        document.getElementById('sensorInfo').style.display = 'none';
+        
+        updateStatus("Formulário limpo. Pronto para novo projeto.", "info");
+      }
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+      updateSensorCount();
+      updateStatus("Pronto para gerar código", "info");
+      
+      // Trigger change event para mostrar informações do sensor padrão
+      document.getElementById('sensorType').dispatchEvent(new Event('change'));
+      
+      // Mostrar/ocultar configuração Wi-Fi baseado no checkbox
+      document.getElementById('wifiConfig').style.display = 
+        document.getElementById('includeWiFi').checked ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>

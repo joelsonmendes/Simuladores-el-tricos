@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecossistema Elétrico Interativo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            /* Paleta Dark Mode Neon */
+            --fundo-principal: #12121e;
+            --fundo-card: #1e1e3f;
+            --cor-texto: #f0f0f0;
+            --cor-v: #ffdb58; /* Neon Amarelo/Ouro para Tensão */
+            --cor-i: #00e0ff; /* Neon Ciano para Corrente */
+            --cor-r: #ff6347; /* Neon Vermelho para Resistência */
+            --cor-p: #9c27b0; /* Neon Púrpura para Potência */
+        }
+
+        body {
+            background-color: var(--fundo-principal);
+            color: var(--cor-texto);
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Header --- */
+        h1 {
+            color: var(--cor-texto);
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        /* --- Cards das Grandezas (UI/UX) --- */
+        .card {
+            background: var(--fundo-card);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .card h2 {
+            font-size: 1.8em;
+            border-bottom: 2px solid;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Cores Específicas */
+        #card-v h2 { color: var(--cor-v); border-color: var(--cor-v); }
+        #card-i h2 { color: var(--cor-i); border-color: var(--cor-i); }
+        #card-r h2 { color: var(--cor-r); border-color: var(--cor-r); }
+        #card-p h2 { color: var(--cor-p); border-color: var(--cor-p); }
+        
+        .value-display {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin: 10px 0;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        /* Sliders */
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            margin: 10px 0;
+            background: #3a3a5e;
+            border-radius: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Thumb Colors */
+        #slider-v::-webkit-slider-thumb { background: var(--cor-v); }
+        #slider-i::-webkit-slider-thumb { background: var(--cor-i); }
+        #slider-r::-webkit-slider-thumb { background: var(--cor-r); }
+
+        /* Metáforas */
+        .metaphor {
+            font-style: italic;
+            opacity: 0.8;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* --- Fórmulas (Triângulo de Ohm) --- */
+        .formula-box {
+            grid-column: 1 / -1; /* Ocupa as duas colunas */
+            background: #25254a;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 0 30px rgba(0, 224, 255, 0.1); /* Brilho suave */
+        }
+        
+        .formula-box p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .formula {
+            font-size: 3em;
+            font-weight: 700;
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .v-text { color: var(--cor-v); }
+        .i-text { color: var(--cor-i); }
+        .r-text { color: var(--cor-r); }
+        .p-text { color: var(--cor-p); }
+
+        /* Responsividade */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .formula-box {
+                grid-column: 1 / 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>💡 Ecossistema Interativo das Grandezas Elétricas</h1>
+
+    <div class="container">
+        
+        <div class="card" id="card-v">
+            <h2>Tensão (V) - Volt</h2>
+            <div class="value-display v-text" id="display-v">12.0 V</div>
+            <input type="range" id="slider-v" min="1" max="24" step="0.5" value="12">
+            <p class="metaphor">Metáfora: A força que 'empurra' os elétrons (D.D.P).</p>
+        </div>
+
+        <div class="card" id="card-r">
+            <h2>Resistência (R) - Ohm ($\Omega$)</h2>
+            <div class="value-display r-text" id="display-r">4.0 $\Omega$</div>
+            <input type="range" id="slider-r" min="1" max="10" step="0.1" value="4">
+            <p class="metaphor">Metáfora: O 'obstáculo' no caminho do fluxo elétrico.</p>
+        </div>
+
+        <div class="card" id="card-i">
+            <h2>Corrente (I) - Ampère</h2>
+            <div class="value-display i-text" id="display-i">3.0 A</div>
+            <p class="metaphor">Metáfora: O 'fluxo' de elétrons em movimento.</p>
+            <p style="font-size: 0.9em; opacity: 0.7;">Calculada via Lei de Ohm: $I = V/R$</p>
+        </div>
+
+        <div class="card" id="card-p">
+            <h2>Potência (P) - Watt</h2>
+            <div class="value-display p-text" id="display-p">36.0 W</div>
+            <p class="metaphor">Metáfora: A taxa de energia transformada (trabalho).</p>
+            <p style="font-size: 0.9em; opacity: 0.7;">Calculada via Fórmula da Potência: $P = V \cdot I$</p>
+        </div>
+
+        <div class="formula-box">
+            <h2>Lei de Ohm & Potência - O Coração do Circuito</h2>
+            <p>Ajuste a Tensão (V) e a Resistência (R) nos sliders e veja como a Corrente (I) e a Potência (P) reagem.</p>
+            <div style="margin: 20px 0;">
+                <span class="formula"><span class="v-text">V</span> = <span class="r-text">R</span> &times; <span class="i-text">I</span></span>
+                &nbsp; &nbsp; | &nbsp; &nbsp;
+                <span class="formula"><span class="p-text">P</span> = <span class="v-text">V</span> &times; <span class="i-text">I</span></span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Elementos DOM
+        const sliderV = document.getElementById('slider-v');
+        const sliderR = document.getElementById('slider-r');
+        const displayV = document.getElementById('display-v');
+        const displayR = document.getElementById('display-r');
+        const displayI = document.getElementById('display-i');
+        const displayP = document.getElementById('display-p');
+
+        /**
+         * Função principal para calcular Corrente (I) e Potência (P)
+         * baseadas nos valores de Tensão (V) e Resistência (R).
+         */
+        function calculateCircuit() {
+            // 1. Obter valores dos sliders
+            const V = parseFloat(sliderV.value);
+            const R = parseFloat(sliderR.value);
+
+            // 2. Calcular Corrente (I) usando a Lei de Ohm: I = V / R
+            // Tratamento para evitar divisão por zero (embora o min R seja 1)
+            let I = R !== 0 ? V / R : 0; 
+
+            // 3. Calcular Potência (P) usando P = V * I
+            let P = V * I;
+
+            // 4. Atualizar os displays na UI
+            displayV.textContent = `${V.toFixed(1)} V`;
+            displayR.textContent = `${R.toFixed(1)} \u03A9`; // \u03A9 é o símbolo de Ohm
+            displayI.textContent = `${I.toFixed(1)} A`;
+            displayP.textContent = `${P.toFixed(1)} W`;
+
+            // 5. Adicionar efeito visual (Inteligência Visual / UX)
+            // Aumenta/diminui o tamanho da fonte da Corrente (I) para simular o fluxo
+            displayI.style.fontSize = `${2.5 + (I / 10)}em`;
+            
+            // Simula o brilho da Potência (P) através de uma sombra
+            const pBrightness = Math.min(P / 100, 1); // Normaliza entre 0 e 1
+            displayP.style.textShadow = `0 0 ${15 * pBrightness}px var(--cor-p), 0 0 ${5 * pBrightness}px var(--cor-p)`;
+        }
+
+        // --- Event Listeners para Interatividade ---
+
+        // Quando o slider de Tensão muda, recalcula
+        sliderV.addEventListener('input', calculateCircuit);
+
+        // Quando o slider de Resistência muda, recalcula
+        sliderR.addEventListener('input', calculateCircuit);
+
+        // Chamada inicial para preencher os valores na primeira carga
+        calculateCircuit();
+
+    </script>
+</body>
+</html>

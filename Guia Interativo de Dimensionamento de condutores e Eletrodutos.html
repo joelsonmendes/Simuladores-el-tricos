@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Guia Interativo: Dimensionamento de Condutores e Eletrodutos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f0f9ff;
+      color: #222;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      text-align: center;
+      color: #006064;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 24px;
+      font-size: 1.05em;
+    }
+
+    .simulator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .simulator-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: #e0f7fa;
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid #00838f;
+    }
+
+    .panel h2 {
+      color: #006064;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #006064;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #80deea;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+
+    .results-box {
+      background: #b2ebf2;
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+    }
+
+    .results-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #80deea;
+    }
+
+    .results-row:last-child {
+      border-bottom: none;
+    }
+
+    .results-row strong {
+      color: #006064;
+      font-size: 1.1em;
+    }
+
+    .highlight {
+      background: #4dd0e1;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .warning {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-weight: bold;
+      display: none;
+    }
+
+    .norm-reference {
+      background: #e3f2fd;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 0.95em;
+      color: #0288d1;
+    }
+
+    .cable-visual {
+      height: 60px;
+      margin: 16px 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .conductor {
+      height: 24px;
+      background: #4caf50;
+      border-radius: 12px;
+      margin: 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      padding: 0 8px;
+      white-space: nowrap;
+    }
+
+    .conduit {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 36px;
+      background: #795548;
+      border-radius: 18px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .info-section {
+      background: #fff8e1;
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 24px;
+      font-size: 0.95em;
+    }
+
+    .info-section h3 {
+      color: #e65100;
+      margin-bottom: 10px;
+    }
+
+    .info-section ul {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+
+    .info-section li {
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #b2dfdb;
+    }
+
+    th {
+      background: #80cbc4;
+      color: #004d40;
+      font-weight: bold;
+    }
+
+    tr.highlight-row {
+      background: #b2dfdb;
+      font-weight: bold;
+    }
+
+    .calculation-steps {
+      background: #e0f2f1;
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+      font-size: 0.95em;
+    }
+
+    .calculation-steps h4 {
+      color: #006064;
+      margin-bottom: 8px;
+    }
+
+    .step {
+      margin-bottom: 6px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .step::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #00838f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📏 Guia Interativo de Dimensionamento de Condutores e Eletrodutos</h1>
+    <p class="subtitle">Calcule seções de cabos, bitolas de eletrodutos e verifique conformidade com a NBR 5410</p>
+
+    <div class="simulator-grid">
+      <div class="panel">
+        <h2>⚙️ Parâmetros da Instalação</h2>
+        <div class="input-group">
+          <label for="power">Potência da Carga (W)</label>
+          <input type="number" id="power" value="3000" min="100" step="100" oninput="calculateDimensions()">
+        </div>
+
+        <div class="input-group">
+          <label for="voltage">Tensão (V)</label>
+          <select id="voltage" onchange="calculateDimensions()">
+            <option value="127">127 V (Monofásico)</option>
+            <option value="220" selected>220 V (Monofásico)</option>
+            <option value="380">380 V (Trifásico)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="distance">Distância do Circuito (m)</label>
+          <input type="number" id="distance" value="25" min="1" max="200" step="1" oninput="calculateDimensions()">
+        </div>
+
+        <div class="input-group">
+          <label for="installationMethod">Método de Instalação</label>
+          <select id="installationMethod" onchange="calculateDimensions()">
+            <option value="B1">B1 - Eletroduto embutido</option>
+            <option value="A1">A1 - Eletroduto aparente</option>
+            <option value="C">C - Diretamente enterrado</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="insulation">Tipo de Isolação</label>
+          <select id="insulation" onchange="calculateDimensions()">
+            <option value="70">PVC (70°C)</option>
+            <option value="90" selected>Termoplástico (90°C)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="numCircuits">Número de Circuitos no Eletroduto</label>
+          <input type="number" id="numCircuits" value="1" min="1" max="5" step="1" oninput="calculateDimensions()">
+        </div>
+
+        <div class="norm-reference">
+          Baseado na <strong>NBR 5410:2004</strong> - Instalações elétricas de baixa tensão
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>📊 Resultados do Dimensionamento</h2>
+        <div class="results-box">
+          <div class="results-row">
+            <span>Corrente de Projeto:</span>
+            <strong id="projectCurrent">13.64 A</strong>
+          </div>
+          <div class="results-row">
+            <span>Seção Mínima do Condutor:</span>
+            <strong id="conductorSection">2.5 mm²</strong>
+          </div>
+          <div class="results-row">
+            <span>Bitola do Eletroduto:</span>
+            <strong id="conduitSize">20 mm</strong>
+          </div>
+          <div class="results-row">
+            <span>Queda de Tensão:</span>
+            <strong id="voltageDrop">1.32%</strong>
+          </div>
+          <div class="results-row">
+            <span>Conformidade NBR 5410:</span>
+            <strong id="complianceStatus">Conforme</strong>
+          </div>
+        </div>
+
+        <div class="cable-visual">
+          <div class="conduit" id="conduitVisual">Eletroduto Ø20mm</div>
+          <div class="conductor">Fase</div>
+          <div class="conductor">Neutro</div>
+          <div class="conductor">Terra</div>
+        </div>
+
+        <div class="warning" id="highDropWarning">
+          ⚠️ Queda de tensão acima de 4%. Verifique seção do condutor.
+        </div>
+        <div class="warning" id="smallSectionWarning">
+          ⚠️ Seção mínima para circuito de tomada é 2.5 mm² (NBR 5410).
+        </div>
+
+        <div class="calculation-steps">
+          <h4>Passo a Passo do Cálculo</h4>
+          <div class="step" id="step1">I = P / (V × FP) = 3000 / (220 × 1) = 13.64 A</div>
+          <div class="step" id="step2">Seção mínima: 1.5 mm² (pela corrente)</div>
+          <div class="step" id="step3">Verificação da queda de tensão: ΔV% = (2 × ρ × L × I) / (V × S) = 1.32%</div>
+          <div class="step" id="step4">Seção final: 2.5 mm² (mínimo para tomadas)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>📚 Tabelas de Referência da NBR 5410</h3>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Seção (mm²)</th>
+              <th>Corrente Máxima (A)<br><small>Método B1, 90°C</small></th>
+              <th>Eletroduto Máx.<br><small>3 condutores</small></th>
+            </tr>
+          </thead>
+          <tbody id="referenceTable">
+            <!-- Preenchido por JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <ul style="margin-top: 16px;">
+        <li><strong>Queda de tensão máxima</strong>: 4% para circuitos terminais, 7% para alimentadores</li>
+        <li><strong>Seção mínima</strong>: 1.5 mm² para iluminação, 2.5 mm² para tomadas</li>
+        <li><strong>Eletrodutos</strong>: Preenchimento máximo de 40% para 3+ condutores</li>
+        <li><strong>Fator de correção</strong>: Aplicado para mais de 1 circuito no mesmo eletroduto</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Dados das tabelas da NBR 5410 (simplificados para demonstração)
+    const currentCapacity = {
+      '1.5': { '70': 15.5, '90': 17.5 },
+      '2.5': { '70': 21, '90': 24 },
+      '4': { '70': 28, '90': 32 },
+      '6': { '70': 36, '90': 41 },
+      '10': { '70': 50, '90': 57 },
+      '16': { '70': 68, '90': 76 }
+    };
+
+    const conduitFill = {
+      '16': [2, 3, 4], // [1.5mm², 2.5mm², 4mm²]
+      '20': [3, 5, 7],
+      '25': [5, 8, 11],
+      '32': [8, 12, 16],
+      '40': [12, 18, 24]
+    };
+
+    const resistivity = 0.0172; // Resistividade do cobre em Ω·mm²/m
+
+    function calculateDimensions() {
+      const power = parseFloat(document.getElementById('power').value) || 3000;
+      const voltage = parseFloat(document.getElementById('voltage').value) || 220;
+      const distance = parseFloat(document.getElementById('distance').value) || 25;
+      const insulation = document.getElementById('insulation').value;
+      const numCircuits = parseInt(document.getElementById('numCircuits').value) || 1;
+      
+      // Fator de potência assumido como 1 para simplificação
+      const powerFactor = 1;
+      
+      // Cálculo da corrente
+      const current = power / (voltage * powerFactor);
+      
+      // Determinar seção mínima pela corrente
+      let conductorSection = '1.5';
+      let sections = Object.keys(currentCapacity).sort((a, b) => parseFloat(a) - parseFloat(b));
+      
+      for (let section of sections) {
+        let capacity = currentCapacity[section][insulation];
+        // Aplicar fator de correção para múltiplos circuitos
+        if (numCircuits > 1) {
+          const correctionFactor = numCircuits <= 2 ? 0.8 : 0.7;
+          capacity *= correctionFactor;
+        }
+        if (current <= capacity) {
+          conductorSection = section;
+          break;
+        }
+      }
+      
+      // Verificar seção mínima para tomadas (2.5 mm²)
+      const finalSection = Math.max(parseFloat(conductorSection), 2.5).toString();
+      
+      // Cálculo da queda de tensão
+      const voltageDropPercent = (2 * resistivity * distance * current) / (voltage * parseFloat(finalSection)) * 100;
+      
+      // Verificar se queda de tensão está dentro do limite (4%)
+      const isDropAcceptable = voltageDropPercent <= 4;
+      
+      // Determinar bitola do eletroduto
+      let conduitSize = '16';
+      const conduitSizes = Object.keys(conduitFill).sort((a, b) => parseInt(a) - parseInt(b));
+      
+      for (let size of conduitSizes) {
+        let maxConductors = 0;
+        if (finalSection <= 1.5) maxConductors = conduitFill[size][0];
+        else if (finalSection <= 2.5) maxConductors = conduitFill[size][1];
+        else if (finalSection <= 4) maxConductors = conduitFill[size][2];
+        
+        // 3 condutores por circuito (fase, neutro, terra) × número de circuitos
+        const totalConductors = 3 * numCircuits;
+        
+        if (totalConductors <= maxConductors) {
+          conduitSize = size;
+          break;
+        }
+      }
+      
+      // Verificar conformidade geral
+      const isSectionCompliant = parseFloat(finalSection) >= 2.5;
+      const isCompliant = isDropAcceptable && isSectionCompliant;
+      
+      // Atualizar resultados
+      document.getElementById('projectCurrent').textContent = current.toFixed(2) + ' A';
+      document.getElementById('conductorSection').textContent = finalSection + ' mm²';
+      document.getElementById('conduitSize').textContent = conduitSize + ' mm';
+      document.getElementById('voltageDrop').textContent = voltageDropPercent.toFixed(2) + '%';
+      document.getElementById('complianceStatus').textContent = isCompliant ? 'Conforme' : 'Não Conforme';
+      document.getElementById('complianceStatus').style.color = isCompliant ? '#006064' : '#c62828';
+      
+      // Atualizar visualização
+      document.getElementById('conduitVisual').textContent = `Eletroduto Ø${conduitSize}mm`;
+      
+      // Atualizar avisos
+      document.getElementById('highDropWarning').style.display = 
+        !isDropAcceptable ? 'block' : 'none';
+      document.getElementById('smallSectionWarning').style.display = 
+        !isSectionCompliant ? 'block' : 'none';
+      
+      // Atualizar passos de cálculo
+      document.getElementById('step1').textContent = 
+        `I = P / (V × FP) = ${power} / (${voltage} × ${powerFactor}) = ${current.toFixed(2)} A`;
+      document.getElementById('step2').textContent = 
+        `Seção mínima: ${conductorSection} mm² (pela corrente)`;
+      document.getElementById('step3').textContent = 
+        `Queda de tensão: ΔV% = (2 × ρ × L × I) / (V × S) = ${voltageDropPercent.toFixed(2)}%`;
+      document.getElementById('step4').textContent = 
+        `Seção final: ${finalSection} mm² (${parseFloat(finalSection) >= 2.5 ? 'mínimo para tomadas' : 'pela corrente'})`;
+      
+      // Atualizar tabela de referência
+      updateReferenceTable(finalSection, conduitSize);
+    }
+
+    function updateReferenceTable(selectedSection, selectedConduit) {
+      const tbody = document.getElementById('referenceTable');
+      tbody.innerHTML = '';
+      
+      const sections = Object.keys(currentCapacity).sort((a, b) => parseFloat(a) - parseFloat(b));
+      
+      for (let section of sections) {
+        const row = document.createElement('tr');
+        if (section === selectedSection) {
+          row.classList.add('highlight-row');
+        }
+        
+        const insulation = document.getElementById('insulation').value;
+        const capacity = currentCapacity[section][insulation];
+        
+        // Determinar eletroduto adequado para esta seção
+        let conduitForSection = '16';
+        const conduitSizes = Object.keys(conduitFill).sort((a, b) => parseInt(a) - parseInt(b));
+        const totalConductors = 3 * parseInt(document.getElementById('numCircuits').value || 1);
+        
+        for (let size of conduitSizes) {
+          let maxConductors = 0;
+          if (section <= 1.5) maxConductors = conduitFill[size][0];
+          else if (section <= 2.5) maxConductors = conduitFill[size][1];
+          else if (section <= 4) maxConductors = conduitFill[size][2];
+          
+          if (totalConductors <= maxConductors) {
+            conduitForSection = size;
+            break;
+          }
+        }
+        
+        row.innerHTML = `
+          <td>${section} mm²</td>
+          <td>${capacity} A</td>
+          <td>Ø${conduitForSection} mm</td>
+        `;
+        tbody.appendChild(row);
+      }
+    }
+
+    // Inicializa
+    document.addEventListener('DOMContentLoaded', () => {
+      calculateDimensions();
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ ELETRO ANIMADO + + | faíscas, calor, medidor analógico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a1725;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            background: linear-gradient(165deg, #1a3042 0%, #0f2233 100%);
+            border-radius: 70px;
+            padding: 30px;
+            box-shadow: 0 30px 50px #000000b0, inset 0 2px 2px #ffffff40;
+            border: 2px solid #3e6d93;
+        }
+        h1 {
+            font-size: 3rem;
+            font-weight: 400;
+            color: #ffeeaa;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #3f759b;
+            padding-bottom: 15px;
+            text-shadow: 0 4px 8px black;
+        }
+        h1 span {
+            font-size: 1.4rem;
+            background: #1e4f70;
+            padding: 8px 28px;
+            border-radius: 60px;
+            color: #ddf2ff;
+        }
+        .row {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .canvas-area {
+            flex: 2.5;
+            min-width: 750px;
+            background: #1a3649;
+            border-radius: 60px;
+            padding: 25px;
+            border: 2px solid #3d76a2;
+            box-shadow: inset 0 0 0 3px #0c2636, 0 15px 25px black;
+        }
+        .painel {
+            flex: 1.2;
+            min-width: 320px;
+            background: #1c3547;
+            border-radius: 60px;
+            padding: 25px;
+            border: 2px solid #3e7aa6;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            box-shadow: inset 0 2px 8px #0b1f2b;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #1c4057;
+            border-radius: 40px;
+            box-shadow: 0 0 0 3px #0d2c40, 0 20px 30px black;
+        }
+        .medidor-digital {
+            background: #112b38;
+            border-radius: 40px;
+            padding: 22px;
+            border-left: 10px solid #f5b342;
+            box-shadow: inset 0 4px 10px black;
+        }
+        .medidor-linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 1.6rem;
+            color: #c3e3ff;
+            margin: 12px 0;
+        }
+        .valor-medidor {
+            font-family: 'Courier New', monospace;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #ffde8a;
+        }
+        .unidade {
+            font-size: 1.3rem;
+            color: #9fc9f0;
+            margin-left: 8px;
+        }
+        .slider-bloco {
+            background: #163a4b;
+            border-radius: 50px;
+            padding: 18px 22px;
+        }
+        .slider-bloco label {
+            color: #d0ecff;
+            font-size: 1.3rem;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 14px;
+            background: #24597c;
+            border-radius: 40px;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 34px;
+            height: 34px;
+            background: #ffda85;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 6px 10px black;
+            cursor: grab;
+        }
+        .botoes {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: #124052;
+            border-radius: 60px;
+            padding: 18px 22px;
+        }
+        .btn-chave {
+            background: #3a8163;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            padding: 16px 40px;
+            border-radius: 70px;
+            font-weight: 700;
+            box-shadow: 0 10px 0 #1f543d, 0 12px 20px black;
+            cursor: pointer;
+            transition: 0.07s linear;
+            border: 3px solid #b2f0b2;
+            flex: 1;
+        }
+        .btn-chave.aberta {
+            background: #aa5e48;
+            box-shadow: 0 10px 0 #6d3c2c, 0 12px 20px black;
+            border-color: #ffb59e;
+        }
+        .medidor-analogico {
+            background: #1b384b;
+            border-radius: 50px;
+            padding: 15px;
+            margin-top: 5px;
+        }
+        canvas.analog-canvas {
+            width: 100%;
+            height: 120px;
+            background: #152d3b;
+            border-radius: 30px;
+            box-shadow: inset 0 0 0 3px #2e577b;
+        }
+        .atividade {
+            background: #1b4055;
+            border-radius: 50px;
+            padding: 25px;
+        }
+        .pergunta {
+            color: #fcf2cf;
+            font-size: 1.5rem;
+            margin-bottom: 18px;
+        }
+        .opcoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .opcao-btn {
+            background: #1f6190;
+            border: 2px solid #7bb2e0;
+            color: white;
+            padding: 14px 25px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1 0 130px;
+        }
+        .opcao-btn:hover {
+            background: #2d7bb3;
+        }
+        .feedback {
+            background: #124c63;
+            border-radius: 40px;
+            padding: 16px;
+            color: #e4f3ff;
+            font-size: 1.2rem;
+            border-left: 10px solid #f7c85c;
+            margin-top: 15px;
+        }
+        footer {
+            text-align: center;
+            color: #6093b5;
+            margin-top: 25px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>⚡ ELETROLAB ANIMADO <span>faíscas · calor · medidor · elétrons</span></h1>
+    <div class="row">
+        <!-- CANVAS PRINCIPAL (circuito + animações) -->
+        <div class="canvas-area">
+            <canvas id="circuitCanvas" width="950" height="500"></canvas>
+            <div style="display: flex; justify-content: space-between; margin-top: 16px; color: #b2d9fc; font-size: 1.1rem;">
+                <span>🌀 elétrons · 🔥 calor · ⚡ faíscas no interruptor</span>
+                <span>💡 brilho da lâmpada varia com a potência</span>
+            </div>
+        </div>
+        <!-- PAINEL DE CONTROLE E MEDIDORES -->
+        <div class="painel">
+            <div class="medidor-digital">
+                <div class="medidor-linha"><span>🔋 tensão</span> <span class="valor-medidor" id="voltageDisplay">9.0</span><span class="unidade">V</span></div>
+                <div class="slider-bloco">
+                    <label>ajustar tensão</label>
+                    <input type="range" id="voltageSlider" min="0" max="12" value="9" step="0.5">
+                </div>
+            </div>
+            <div class="medidor-digital">
+                <div class="medidor-linha"><span>🛑 resistência</span> <span class="valor-medidor" id="resistanceDisplay">120</span><span class="unidade">Ω</span></div>
+                <div class="slider-bloco">
+                    <label>resistência da lâmpada</label>
+                    <input type="range" id="resistanceSlider" min="10" max="500" value="120" step="5">
+                </div>
+            </div>
+            <div class="medidor-digital">
+                <div class="medidor-linha"><span>⚡ corrente</span> <span class="valor-medidor" id="currentDisplay">75.0</span><span class="unidade">mA</span></div>
+                <div class="medidor-linha"><span>💡 potência</span> <span class="valor-medidor" id="powerDisplay">675</span><span class="unidade">mW</span></div>
+            </div>
+
+            <!-- MEDIDOR ANALÓGICO (ponteiro animado) -->
+            <div class="medidor-analogico">
+                <canvas id="analogMeter" width="280" height="120" class="analog-canvas"></canvas>
+                <div style="display: flex; justify-content: space-between; color:#a9d4f5; margin-top:5px;">
+                    <span>0 mA</span>
+                    <span>150 mA</span>
+                </div>
+            </div>
+
+            <!-- INTERRUPTOR COM ANIMAÇÃO DE FAÍSCA -->
+            <div class="botoes">
+                <button class="btn-chave" id="switchBtn">🔒 FECHADA</button>
+                <span style="color:white; font-size:1.5rem;">⏻ interruptor</span>
+            </div>
+
+            <!-- ATIVIDADE FLASH -->
+            <div class="atividade">
+                <div class="pergunta" id="questionText">A corrente aumenta quando:</div>
+                <div class="opcoes" id="optionsContainer">
+                    <button class="opcao-btn" data-opt="0">a resistência aumenta</button>
+                    <button class="opcao-btn" data-opt="1">a tensão aumenta</button>
+                    <button class="opcao-btn" data-opt="2">o interruptor abre</button>
+                </div>
+                <div class="feedback" id="feedbackMsg">toque numa opção</div>
+                <button id="nextQuestion" style="background:#1d6190; border:none; color:white; padding:14px; border-radius:50px; margin-top:18px; width:100%; font-size:1.3rem;">➡️ próximo</button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        🔥 animações: elétrons em movimento · faíscas ao chavear · calor na lâmpada · medidor analógico
+    </footer>
+</div>
+
+<script>
+    (function() {
+        // --- configurações do circuito e animação ---
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+
+        // Pontos fixos do circuito (coordenadas)
+        const points = {
+            batPos: { x: 120, y: 180 },
+            batNeg: { x: 120, y: 350 },
+            swLeft: { x: 260, y: 180 },
+            swRight: { x: 390, y: 180 },
+            lampTop: { x: 540, y: 180 },
+            lampBottom: { x: 540, y: 350 }
+        };
+
+        // Segmentos de fio (para as partículas)
+        const wires = [
+            { from: points.batPos, to: points.swLeft },
+            { from: points.swLeft, to: points.swRight },   // dentro do interruptor
+            { from: points.swRight, to: points.lampTop },
+            { from: points.lampTop, to: points.lampBottom }, // filamento da lâmpada
+            { from: points.lampBottom, to: points.batNeg }
+        ];
+
+        // --- estado elétrico ---
+        let voltage = 9.0;
+        let resistance = 120;   // ohms
+        let switchClosed = true;
+
+        // elementos DOM
+        const voltageSlider = document.getElementById('voltageSlider');
+        const resistanceSlider = document.getElementById('resistanceSlider');
+        const voltageDisplay = document.getElementById('voltageDisplay');
+        const resistanceDisplay = document.getElementById('resistanceDisplay');
+        const currentDisplay = document.getElementById('currentDisplay');
+        const powerDisplay = document.getElementById('powerDisplay');
+        const switchBtn = document.getElementById('switchBtn');
+
+        // --- partículas (elétrons) ---
+        let particles = [];
+        const NUM_PARTICLES = 50;
+        for (let i = 0; i < NUM_PARTICLES; i++) {
+            particles.push({
+                wireIdx: Math.floor(Math.random() * wires.length),
+                t: Math.random(),
+                speedFactor: 0.5 + Math.random() * 0.8
+            });
+        }
+
+        // --- animação de faísca no interruptor ---
+        let sparkIntensity = 0;       // 0..1
+        let sparkFade = 0.95;         // fator de decaimento
+
+        // --- animação de calor na lâmpada (ondas) ---
+        let heatWaves = [];
+        for (let i = 0; i < 6; i++) {
+            heatWaves.push({ offset: Math.random() * 20, phase: Math.random() * 2 * Math.PI });
+        }
+
+        // --- medidor analógico (canvas separado) ---
+        const analogCanvas = document.getElementById('analogMeter');
+        const aCtx = analogCanvas.getContext('2d');
+
+        // --- funções de atualização de valores ---
+        function updateValues() {
+            voltage = parseFloat(voltageSlider.value);
+            resistance = parseFloat(resistanceSlider.value);
+            voltageDisplay.textContent = voltage.toFixed(1);
+            resistanceDisplay.textContent = resistance;
+
+            let current = 0;
+            if (switchClosed && resistance > 0) {
+                current = voltage / resistance;   // A
+            }
+            const currentMA = current * 1000;
+            const powerMW = voltage * current * 1000;
+            currentDisplay.textContent = currentMA.toFixed(1);
+            powerDisplay.textContent = Math.round(powerMW);
+            return { current, currentMA, powerMW };
+        }
+
+        // --- gerar faísca ao alternar chave ---
+        function triggerSpark() {
+            sparkIntensity = 1.0;   // máximo
+        }
+
+        switchBtn.addEventListener('click', () => {
+            switchClosed = !switchClosed;
+            switchBtn.textContent = switchClosed ? '🔒 FECHADA' : '🔓 ABERTA';
+            switchBtn.classList.toggle('aberta', !switchClosed);
+            triggerSpark();   // ativa animação de faísca
+            updateValues();
+        });
+
+        voltageSlider.addEventListener('input', updateValues);
+        resistanceSlider.addEventListener('input', updateValues);
+
+        // --- atualização das partículas (movimento) ---
+        function updateParticles(currentA) {
+            if (!switchClosed || currentA < 0.001) {
+                // partículas paradas (não andam)
+                return;
+            }
+            const baseSpeed = 0.012 * Math.min(currentA * 15, 2.5); // velocidade proporcional
+            for (let p of particles) {
+                p.t += baseSpeed * p.speedFactor;
+                if (p.t >= 1.0) {
+                    p.t = 0.0;
+                    p.wireIdx = (p.wireIdx + 1) % wires.length;
+                }
+            }
+        }
+
+        // --- desenhar medidor analógico (ponteiro) ---
+        function drawAnalogMeter(currentMA) {
+            aCtx.clearRect(0, 0, analogCanvas.width, analogCanvas.height);
+            // fundo
+            aCtx.fillStyle = '#1e3e53';
+            aCtx.fillRect(0, 0, analogCanvas.width, analogCanvas.height);
+            // escala
+            aCtx.strokeStyle = '#b8defa';
+            aCtx.lineWidth = 3;
+            aCtx.beginPath();
+            aCtx.arc(50, 60, 40, 0.8 * Math.PI, 2.2 * Math.PI, false);
+            aCtx.stroke();
+            // ponteiro
+            let angle = 0.8 * Math.PI + (2.2 * Math.PI - 0.8 * Math.PI) * Math.min(currentMA / 150, 1.0); // escala até 150mA
+            let pointerX = 50 + 35 * Math.cos(angle);
+            let pointerY = 60 + 35 * Math.sin(angle);
+            aCtx.beginPath();
+            aCtx.moveTo(50, 60);
+            aCtx.lineTo(pointerX, pointerY);
+            aCtx.strokeStyle = '#ffcc66';
+            aCtx.lineWidth = 5;
+            aCtx.stroke();
+            // círculo central
+            aCtx.beginPath();
+            aCtx.arc(50, 60, 8, 0, 2*Math.PI);
+            aCtx.fillStyle = '#f0d050';
+            aCtx.fill();
+            aCtx.strokeStyle = 'white';
+            aCtx.lineWidth = 2;
+            aCtx.stroke();
+        }
+
+        // --- desenho principal do circuito com todas as animações ---
+        function drawCircuit() {
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. fios base
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#6b8da8';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#aac6db';
+            wires.forEach(wire => {
+                ctx.beginPath();
+                ctx.moveTo(wire.from.x, wire.from.y);
+                ctx.lineTo(wire.to.x, wire.to.y);
+                ctx.strokeStyle = '#7fa3be';
+                ctx.stroke();
+            });
+
+            // 2. componentes
+            // bateria
+            ctx.fillStyle = '#376480';
+            ctx.fillRect(points.batPos.x-30, points.batPos.y-20, 60, 40);
+            ctx.fillStyle = '#f4e3a7';
+            ctx.font = 'bold 24px monospace';
+            ctx.fillText('+', points.batPos.x-18, points.batPos.y+8);
+            ctx.fillText('−', points.batPos.x+20, points.batPos.y+8);
+            // interruptor (caixa)
+            ctx.fillStyle = '#2f5b79';
+            ctx.fillRect(points.swLeft.x-20, points.swLeft.y-25, 160, 50);
+            ctx.strokeStyle = '#b5def5';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(points.swLeft.x-20, points.swLeft.y-25, 160, 50);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 18px "Segoe UI"';
+            ctx.fillText('SW', points.swLeft.x+40, points.swLeft.y+5);
+            // contato do interruptor (linha verde/vermelha)
+            ctx.beginPath();
+            ctx.strokeStyle = switchClosed ? '#2ecc71' : '#e74c3c';
+            ctx.lineWidth = 10;
+            ctx.moveTo(points.swLeft.x+10, points.swLeft.y-5);
+            ctx.lineTo(points.swRight.x-20, points.swRight.y-5);
+            ctx.stroke();
+            // lâmpada
+            ctx.fillStyle = '#4a6e88';
+            ctx.beginPath();
+            ctx.ellipse(points.lampTop.x, points.lampTop.y+60, 40, 55, 0, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#f5d742';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.fillStyle = '#fadf73';
+            ctx.font = '48px sans-serif';
+            ctx.fillText('💡', points.lampTop.x-25, points.lampTop.y+70);
+
+            // 3. terminais (pontos)
+            Object.values(points).forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 10, 0, 2*Math.PI);
+                ctx.fillStyle = '#f5b342';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#e67e22';
+                ctx.fill();
+                ctx.strokeStyle = '#2c3e50';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // 4. ANIMAÇÕES -------------------------------------------------
+
+            const { current, currentMA } = updateValues(); // valores atuais
+
+            // 4a. PARTÍCULAS (elétrons) 
+            if (switchClosed && current > 0.001) {
+                for (let p of particles) {
+                    const wire = wires[p.wireIdx];
+                    const x = wire.from.x + (wire.to.x - wire.from.x) * p.t;
+                    const y = wire.from.y + (wire.to.y - wire.from.y) * p.t;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 7, 0, 2*Math.PI);
+                    ctx.fillStyle = '#4dd0e1';
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#00bcd4';
+                    ctx.fill();
+                    // rastro
+                    ctx.beginPath();
+                    ctx.arc(x-3, y-3, 4, 0, 2*Math.PI);
+                    ctx.fillStyle = '#b3f0ff';
+                    ctx.globalAlpha = 0.5;
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                }
+            } else {
+                // partículas paradas (cinza)
+                for (let p of particles) {
+                    const wire = wires[p.wireIdx];
+                    const x = wire.from.x + (wire.to.x - wire.from.x) * p.t;
+                    const y = wire.from.y + (wire.to.y - wire.from.y) * p.t;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2*Math.PI);
+                    ctx.fillStyle = '#5a6f7c';
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#263238';
+                    ctx.fill();
+                }
+            }
+
+            // 4b. BRILHO DA LÂMPADA (pulsante conforme potência)
+            const powerMW = voltage * current * 1000;
+            const brightness = Math.min(1, powerMW / 1000); // normalizado
+            if (switchClosed && current > 0.001) {
+                // efeito de brilho pulsante ao redor da lâmpada
+                ctx.shadowBlur = 40 + 20 * Math.sin(Date.now() * 0.01);
+                ctx.shadowColor = '#ffbb33';
+                ctx.beginPath();
+                ctx.ellipse(points.lampTop.x, points.lampTop.y+60, 45, 65, 0, 0, 2*Math.PI);
+                ctx.fillStyle = '#fff7cc20';
+                ctx.fill();
+                // brilho interno
+                ctx.fillStyle = `rgba(255, 240, 150, ${brightness*0.3})`;
+                ctx.fill();
+            }
+
+            // 4c. ONDAS DE CALOR (na lâmpada)
+            if (switchClosed && current > 0.01) {
+                ctx.shadowBlur = 0;
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ff9933';
+                ctx.setLineDash([10, 10]);
+                for (let wv of heatWaves) {
+                    let offset = wv.offset + Date.now() * 0.02;
+                    let radius = 40 + (offset % 30);
+                    ctx.beginPath();
+                    ctx.ellipse(points.lampTop.x, points.lampTop.y+60, radius, radius+10, 0, 0, 2*Math.PI);
+                    ctx.strokeStyle = '#ffaa3370';
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+            }
+
+            // 4d. FAÍSCAS NO INTERRUPTOR
+            if (sparkIntensity > 0.01) {
+                for (let s = 0; s < 6; s++) {
+                    let randX = points.swLeft.x + 40 + (Math.random() - 0.5) * 70;
+                    let randY = points.swLeft.y - 10 + (Math.random() - 0.5) * 40;
+                    ctx.beginPath();
+                    ctx.arc(randX, randY, 6 * sparkIntensity, 0, 2*Math.PI);
+                    ctx.fillStyle = `rgba(255, 200, 50, ${sparkIntensity})`;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = 'orange';
+                    ctx.fill();
+                }
+                sparkIntensity *= sparkFade; // decai
+            } else {
+                sparkIntensity = 0;
+            }
+
+            // 4e. PEQUENOS EFEITOS NO RESISTOR (ondas) – opcional
+            if (switchClosed && current > 0.01) {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#f28500';
+            }
+
+            ctx.shadowBlur = 0;
+            ctx.setLineDash([]);
+
+            // 5. Medidor analógico separado
+            drawAnalogMeter(currentMA);
+        }
+
+        // loop de animação
+        function animate() {
+            const current = (switchClosed && resistance > 0) ? (voltage / resistance) : 0;
+            updateParticles(current);
+            drawCircuit();
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // inicializa valores
+        updateValues();
+
+        // --- QUIZ interativo (reforço) ---
+        const questions = [
+            { q: "A corrente aumenta quando:", opts: ["resistência aumenta", "tensão aumenta", "interruptor abre"], correct: 1, exp: "✔ Correto! I = V / R, então se V aumenta, I aumenta." },
+            { q: "O que as bolinhas azuis representam?", opts: ["elétrons", "prótons", "átomos"], correct: 0, exp: "✔ São os elétrons em movimento (corrente)." },
+            { q: "Se a resistência dobra e a tensão é constante, a corrente:", opts: ["dobra", "cai pela metade", "quadruplica"], correct: 1, exp: "✔ I = V/R, se R dobra, I fica metade." },
+            { q: "As faíscas aparecem quando:", opts: ["tensão alta", "interruptor muda de estado", "lâmpada queima"], correct: 1, exp: "✔ As faíscas simulam a abertura/fecho do contato." },
+        ];
+        let qIndex = 0;
+        const questionEl = document.getElementById('questionText');
+        const optsDiv = document.getElementById('optionsContainer');
+        const feedbackEl = document.getElementById('feedbackMsg');
+        const nextBtn = document.getElementById('nextQuestion');
+
+        function loadQuestion(index) {
+            const q = questions[index];
+            questionEl.textContent = q.q;
+            optsDiv.innerHTML = '';
+            q.opts.forEach((text, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'opcao-btn';
+                btn.textContent = text;
+                btn.dataset.opt = i;
+                btn.addEventListener('click', (e) => {
+                    const chosen = parseInt(e.target.dataset.opt);
+                    const isCorrect = (chosen === q.correct);
+                    document.querySelectorAll('.opcao-btn').forEach(b => b.disabled = true);
+                    if (isCorrect) {
+                        e.target.style.background = '#178f4a';
+                        feedbackEl.innerHTML = `✅ ${q.exp}`;
+                    } else {
+                        e.target.style.background = '#a13d2f';
+                        document.querySelectorAll('.opcao-btn').forEach((b, idx) => {
+                            if (idx === q.correct) b.style.background = '#178f4a';
+                        });
+                        feedbackEl.innerHTML = `❌ Errado. ${q.exp}`;
+                    }
+                });
+                optsDiv.appendChild(btn);
+            });
+            feedbackEl.innerHTML = '🤔 Clique numa resposta';
+        }
+        nextBtn.addEventListener('click', () => {
+            qIndex = (qIndex + 1) % questions.length;
+            loadQuestion(qIndex);
+        });
+        loadQuestion(0);
+
+        // inicialmente desenha medidor
+        drawAnalogMeter(0);
+    })();
+</script>
+</body>
+</html>

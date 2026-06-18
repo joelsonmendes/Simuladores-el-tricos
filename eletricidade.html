@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Eletricidade Básica</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --accent: #facc15;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        .card {
+            background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            max-width: 600px; width: 100%;
+        }
+
+        .circuit-area {
+            height: 200px; border: 3px dashed #cbd5e1; margin-bottom: 20px;
+            border-radius: 10px; position: relative; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .wire {
+            position: absolute; width: 80%; height: 100px;
+            border: 8px solid #475569; border-radius: 10px;
+        }
+
+        .electron {
+            width: 12px; height: 12px; background: var(--primary);
+            border-radius: 50%; position: absolute; top: -10px;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .bulb {
+            font-size: 50px; z-index: 10; filter: grayscale(1);
+            transition: all 0.3s;
+        }
+
+        .controls { display: grid; gap: 15px; }
+        
+        .control-group { display: flex; flex-direction: column; }
+        
+        label { font-weight: bold; margin-bottom: 5px; color: #1e293b; }
+
+        .stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;
+        }
+
+        .stat-box { background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Simulador: Lei de Ohm e Potência</h2>
+        
+        <div class="circuit-area" id="circuit">
+            <div class="wire"></div>
+            <div id="bulb" class="bulb">💡</div>
+            </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Tensão (Diferença de Potencial): <span id="v-val">12</span>V</label>
+                <input type="range" id="volts" min="0" max="50" value="12">
+            </div>
+
+            <div class="control-group">
+                <label>Resistência: <span id="r-val">10</span> Ω</label>
+                <input type="range" id="res" min="1" max="100" value="10">
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div>Corrente (I)</div>
+                <div class="stat-value" id="current-out">1.20 A</div>
+            </div>
+            <div class="stat-box">
+                <div>Potência (P)</div>
+                <div class="stat-value" id="power-out">14.40 W</div>
+            </div>
+        </div>
+        
+        <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">
+            * Observe: Quanto maior a Tensão, mais rápido os elétrons se movem. Quanto maior a Resistência, mais devagar eles fluem.
+        </p>
+    </div>
+
+    <script>
+        const voltsInput = document.getElementById('volts');
+        const resInput = document.getElementById('res');
+        const vVal = document.getElementById('v-val');
+        const rVal = document.getElementById('r-val');
+        const currentOut = document.getElementById('current-out');
+        const powerOut = document.getElementById('power-out');
+        const bulb = document.getElementById('bulb');
+        const circuit = document.getElementById('circuit');
+
+        // Criar elétrons visuais
+        for(let i=0; i<10; i++) {
+            let e = document.createElement('div');
+            e.className = 'electron';
+            circuit.appendChild(e);
+        }
+
+        const electrons = document.querySelectorAll('.electron');
+
+        function update() {
+            const V = parseFloat(voltsInput.value);
+            const R = parseFloat(resInput.value);
+            
+            // Lei de Ohm: I = V / R
+            const I = V / R;
+            // Potência: P = V * I
+            const P = V * I;
+
+            vVal.innerText = V;
+            rVal.innerText = R;
+            currentOut.innerText = I.toFixed(2) + " A";
+            powerOut.innerText = P.toFixed(2) + " W";
+
+            // Efeito visual na lâmpada
+            const brightness = Math.min(P / 50, 2); 
+            bulb.style.filter = `grayscale(${V === 0 ? 1 : 0}) brightness(${0.5 + brightness})`;
+            bulb.style.textShadow = V > 0 ? `0 0 ${P/2}px orange` : 'none';
+
+            // Velocidade dos elétrons baseada na corrente
+            const speed = I * 5;
+            electrons.forEach((e, index) => {
+                const time = (Date.now() / 1000 * speed + index) % 10;
+                // Movimento circular simplificado para o simulador
+                const x = 50 + Math.cos(time) * 40;
+                const y = 50 + Math.sin(time) * 20;
+                e.style.left = x + "%";
+                e.style.top = y + "%";
+                e.style.opacity = V > 0 ? 1 : 0;
+            });
+
+            requestAnimationFrame(update);
+        }
+
+        update();
+    </script>
+</body>
+</html>

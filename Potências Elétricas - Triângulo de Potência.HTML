@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potências Elétricas - Triângulo de Potência</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            /* Paleta Dark Mode Neon */
+            --fundo-principal: #12121e;
+            --fundo-card: #1e1e3f;
+            --cor-texto: #f0f0f0;
+            --cor-ativa: #00e0ff;    /* Azul/Ciano para Potência Ativa (P) */
+            --cor-reativa: #ff6347;  /* Vermelho/Laranja para Potência Reativa (Q) */
+            --cor-aparente: #ffdb58; /* Amarelo/Ouro para Potência Aparente (S) */
+        }
+
+        body {
+            background-color: var(--fundo-principal);
+            color: var(--cor-texto);
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--cor-texto);
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            background: var(--fundo-card);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Triângulo de Potência SVG --- */
+        #triangle-container {
+            width: 100%;
+            height: 350px;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .formula-display {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .formula-display .s-text { color: var(--cor-aparente); }
+        .formula-display .p-text { color: var(--cor-ativa); }
+        .formula-display .q-text { color: var(--cor-reativa); }
+
+        /* --- Controles e Leituras --- */
+        .controls-readouts {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .control-group {
+            flex-basis: 45%;
+            padding: 15px;
+            border-radius: 10px;
+            background: #25254a;
+        }
+
+        .readout {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .readout span {
+            display: block;
+            font-size: 0.7em;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            margin: 10px 0;
+            background: #3a3a5e;
+            border-radius: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        
+        #slider-q::-webkit-slider-thumb { background: var(--cor-reativa); }
+        #slider-p::-webkit-slider-thumb { background: var(--cor-ativa); }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Cores do Texto */
+        .ativa-text { color: var(--cor-ativa); }
+        .reativa-text { color: var(--cor-reativa); }
+        .aparente-text { color: var(--cor-aparente); }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .controls-readouts {
+                flex-direction: column;
+            }
+            .control-group {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📐 O Triângulo de Potência: S, P e Q</h1>
+
+    <div class="main-content">
+        
+        <h2>A Relação entre Potência Ativa, Reativa e Aparente</h2>
+        <p>Ajuste os sliders da Potência Ativa (P) e Potência Reativa (Q) para ver como a Potência Aparente (S) e o Fator de Potência ($\cos \phi$) são alterados.</p>
+
+        <div id="triangle-container">
+            <svg id="power-triangle" width="100%" height="100%" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet">
+                <line x1="50" y1="280" x2="550" y2="280" stroke="#3a3a5e" stroke-width="2"/>
+                
+                <text id="angle-text" x="70" y="250" fill="var(--cor-texto)" font-size="14px">$\phi = 0^\circ$</text>
+
+                <text id="label-p" y="270" fill="var(--cor-ativa)" font-size="16px" text-anchor="middle">P (W)</text>
+                <text id="label-q" x="60" fill="var(--cor-reativa)" font-size="16px" alignment-baseline="middle">Q (var)</text>
+                <text id="label-s" fill="var(--cor-aparente)" font-size="16px">S (VA)</text>
+
+            </svg>
+        </div>
+
+        <div class="formula-display">
+            Fórmula Central: <span class="s-text">S</span>² = <span class="p-text">P</span>² + <span class="q-text">Q</span>²
+        </div>
+
+        <div class="controls-readouts">
+            <div class="control-group">
+                <h3><span class="ativa-text">Potência Ativa (P)</span></h3>
+                <div class="readout ativa-text" id="readout-p">100 W <span>(Trabalho Útil)</span></div>
+                <input type="range" id="slider-p" min="10" max="250" step="1" value="100">
+            </div>
+
+            <div class="control-group">
+                <h3><span class="reativa-text">Potência Reativa (Q)</span></h3>
+                <div class="readout reativa-text" id="readout-q">75 var <span>(Campos Magnéticos)</span></div>
+                <input type="range" id="slider-q" min="0" max="250" step="1" value="75">
+            </div>
+        </div>
+
+        <div class="controls-readouts" style="margin-top: 30px; border-top: 1px solid #3a3a5e; padding-top: 20px;">
+            <div class="control-group" style="background: none; box-shadow: none;">
+                <h3><span class="aparente-text">Potência Aparente (S)</span></h3>
+                <div class="readout aparente-text" id="readout-s">125 VA <span>(Potência Total da Rede)</span></div>
+            </div>
+            <div class="control-group" style="background: none; box-shadow: none;">
+                <h3><span class="ativa-text">Fator de Potência ($\cos \phi$)</span></h3>
+                <div class="readout ativa-text" id="readout-fp">0.80 <span>($\cos \phi = P/S$)</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Elementos DOM
+        const sliderP = document.getElementById('slider-p');
+        const sliderQ = document.getElementById('slider-q');
+        const readoutP = document.getElementById('readout-p');
+        const readoutQ = document.getElementById('readout-q');
+        const readoutS = document.getElementById('readout-s');
+        const readoutFP = document.getElementById('readout-fp');
+        const svgContainer = document.getElementById('power-triangle');
+        const labelP = document.getElementById('label-p');
+        const labelQ = document.getElementById('label-q');
+        const labelS = document.getElementById('label-s');
+        const angleText = document.getElementById('angle-text');
+
+        // Constantes para o Gráfico
+        const P_MAX = 250;
+        const Q_MAX = 250;
+        const BASE_Y = 280; // Ponto base do triângulo
+        const START_X = 50; // Ponto inicial do triângulo
+        const SCALE = 2; // Fator de escala para o SVG
+
+        // Elementos SVG Dinâmicos
+        let lineP, lineQ, lineS;
+
+        /** Inicializa os elementos SVG do triângulo na primeira carga. */
+        function initSvg() {
+            lineP = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+            lineQ = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+            lineS = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+
+            // Linha P (Ativa) - Base
+            lineP.setAttribute('id', 'line-p');
+            lineP.setAttribute('stroke', 'var(--cor-ativa)');
+            lineP.setAttribute('stroke-width', '4');
+            lineP.setAttribute('marker-end', 'url(#arrowhead)');
+
+            // Linha Q (Reativa) - Altura
+            lineQ.setAttribute('id', 'line-q');
+            lineQ.setAttribute('stroke', 'var(--cor-reativa)');
+            lineQ.setAttribute('stroke-width', '4');
+
+            // Linha S (Aparente) - Hipotenusa
+            lineS.setAttribute('id', 'line-s');
+            lineS.setAttribute('stroke', 'var(--cor-aparente)');
+            lineS.setAttribute('stroke-width', '6');
+
+            svgContainer.appendChild(lineP);
+            svgContainer.appendChild(lineQ);
+            svgContainer.appendChild(lineS);
+        }
+
+        /** Função principal para calcular e desenhar o Triângulo de Potência. */
+        function updatePowerTriangle() {
+            // 1. Obter valores dos sliders
+            const P = parseFloat(sliderP.value);
+            const Q = parseFloat(sliderQ.value);
+
+            // 2. Calcular Potência Aparente (S)
+            // S = sqrt(P^2 + Q^2)
+            const S = Math.sqrt(Math.pow(P, 2) + Math.pow(Q, 2));
+
+            // 3. Calcular Fator de Potência (FP) e Ângulo (phi)
+            // FP = cos(phi) = P / S
+            const FP = S !== 0 ? P / S : 1.0;
+            const phiRadians = Math.acos(FP);
+            const phiDegrees = (phiRadians * 180 / Math.PI).toFixed(1);
+
+            // 4. Atualizar Leituras (Readouts)
+            readoutP.innerHTML = `${P.toFixed(0)} W <span>(Trabalho Útil)</span>`;
+            readoutQ.innerHTML = `${Q.toFixed(0)} var <span>(Campos Magnéticos)</span>`;
+            readoutS.innerHTML = `${S.toFixed(1)} VA <span>(Potência Total da Rede)</span>`;
+            readoutFP.innerHTML = `${FP.toFixed(2)} <span>($\cos \phi = P/S$)</span>`;
+
+            // 5. Desenho e Atualização do SVG
+            const pLength = P * SCALE; // Comprimento da base (Potência Ativa)
+            const qLength = Q * SCALE; // Altura (Potência Reativa)
+            
+            const END_X = START_X + pLength;
+            const END_Y = BASE_Y - qLength;
+
+            // P (Base)
+            lineP.setAttribute('x1', START_X);
+            lineP.setAttribute('y1', BASE_Y);
+            lineP.setAttribute('x2', END_X);
+            lineP.setAttribute('y2', BASE_Y);
+
+            // Q (Altura)
+            lineQ.setAttribute('x1', END_X);
+            lineQ.setAttribute('y1', BASE_Y);
+            lineQ.setAttribute('x2', END_X);
+            lineQ.setAttribute('y2', END_Y);
+
+            // S (Hipotenusa)
+            lineS.setAttribute('x1', START_X);
+            lineS.setAttribute('y1', BASE_Y);
+            lineS.setAttribute('x2', END_X);
+            lineS.setAttribute('y2', END_Y);
+
+            // Rótulos do Triângulo
+            labelP.setAttribute('x', START_X + pLength / 2);
+            labelQ.setAttribute('x', END_X + 5);
+            labelQ.setAttribute('y', BASE_Y - qLength / 2);
+            labelS.setAttribute('x', START_X + pLength / 2 + 10);
+            labelS.setAttribute('y', BASE_Y - qLength / 2 - 10);
+
+            // Ângulo
+            angleText.textContent = `\u03A6 = ${phiDegrees}\u00B0`; // Símbolo phi + grau
+            angleText.setAttribute('x', START_X + 15);
+            angleText.setAttribute('y', BASE_Y - (qLength > 30 ? 30 : qLength / 2));
+        }
+
+        // --- Event Listeners ---
+        sliderP.addEventListener('input', updatePowerTriangle);
+        sliderQ.addEventListener('input', updatePowerTriangle);
+
+        // Inicializar SVG e calcular na primeira carga
+        initSvg();
+        updatePowerTriangle();
+    </script>
+</body>
+</html>
